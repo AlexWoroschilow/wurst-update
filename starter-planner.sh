@@ -37,7 +37,7 @@ rm -f ${INFO};
 PLANNER_PID=0;
 # Catch sytem signals needs to write 
 # a xml files for rss status stream
-trap 'resultxml ${PLANNER_PID} ${XML} ${INFO} ${NOTICE} ${ERROR} ${FATAL}; kill ${PLANNER_PID};' EXIT KILL HUP INT TERM
+trap 'resultxml ${PLANNER_PID} ${XML} ${INFO} ${NOTICE} ${ERROR} ${FATAL};' EXIT KILL HUP INT TERM
 
 echo "Run planner: ${SCRIPT_PLANNER}";
 ${SCRIPT_PLANNER} --configlog=${CONFIG_LOGGER} --configfile=${CONFIG_SERVER} 1>>${OUT} 2>> ${ERROR} &
@@ -45,7 +45,7 @@ PLANNER_PID=$!;
 
 # Catch sytem signals needs to write 
 # a xml files for rss status stream
-trap 'resultxml ${PLANNER_PID} ${XML} ${INFO} ${NOTICE} ${ERROR} ${FATAL}; kill ${PLANNER_PID};' EXIT KILL HUP INT TERM
+trap 'resultxml ${PLANNER_PID} ${XML} ${INFO} ${NOTICE} ${ERROR} ${FATAL};' EXIT KILL HUP INT TERM
 
 echo "Waiting for pid: ${PLANNER_PID}";
 wait ${PLANNER_PID};
