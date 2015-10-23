@@ -38,8 +38,8 @@ my @specs = (
 	Param("--list1")->default("$FindBin::Bin/../pdb_all.list"),
 	Param("--list2")->default("$FindBin::Bin/../pdb_slm.list"),
 	Param("--list3")->default("$FindBin::Bin/../pdb_90n.list"),
-	Param("--configfile")->default("$FindBin::Bin/../input/server.conf"),
-	Param("--configlog")->default("$FindBin::Bin/../input/logger.conf")
+	Param("--configfile")->default("$FindBin::Bin/../etc/server.conf"),
+	Param("--configlog")->default("$FindBin::Bin/../etc/logger.conf")
 );
 
 # Parse and validate given parameters

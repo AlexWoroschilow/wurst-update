@@ -21,8 +21,8 @@ use Data::Dump qw( dump pp );
 # Setup available command line parameters
 # with validation, default values and so on
 my @specs = (
-	Param("--configfile")->default("$FindBin::Bin/../input/server.conf"),
-	Param("--configlog")->default("$FindBin::Bin/../input/logger.conf"),
+	Param("--configfile")->default("$FindBin::Bin/../etc/server.conf"),
+	Param("--configlog")->default("$FindBin::Bin/../etc/logger.conf"),
 	Param("--timeout1")->default(80),    # timeout without server
 	Param("--timeout2")->default(30),    # timeout with server but without tasks
 );

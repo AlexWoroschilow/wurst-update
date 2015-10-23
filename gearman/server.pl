@@ -122,10 +122,10 @@ my @specs = (
 	Param("--wakeup")->default(3),
 	Param("--wakeup_delay")->default(1)->valid(qr/\d+/),
 	Param("--timeout")->default(20)->valid(qr/\d+/),
-	Param("--configfile")->default("$FindBin::Bin/../input/server.conf"),
-	Param("--configlog")->default("$FindBin::Bin/../input/logger.conf"),
-
+	Param("--configfile")->default("$FindBin::Bin/../etc/server.conf"),
+	Param("--configlog")->default("$FindBin::Bin/../etc/logger.conf"),
 );
+
 
 # Parse and validate given parameters
 my $opt = Getopt::Lucid->getopt( \@specs );

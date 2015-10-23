@@ -2,44 +2,25 @@
 #$ -clear
 #$ -cwd
 #$ -q stud.q
+set -e
 
-SCRIPT_PLANNER="$(pwd)/gearman/planner.pl";
+CONFIG="$(pwd)/etc/starter.conf";
+CONFIG_SERVER="$(pwd)/etc/server.conf";
+CONFIG_LOGGER="$(pwd)/etc/logger.conf";
+echo "Read config: ${CONFIG}";
+. "/${CONFIG}";
 
-OUT="$(pwd)/output/update-out.std";
-ERROR="$(pwd)/output/update-error.std";
-FATAL="$(pwd)/output/update-fatal.log";
-NOTICE="$(pwd)/output/update-error.log";
-INFO="$(pwd)/output/update-info.log";
+echo "Checking..."
+check_file ${CONFIG_SERVER};
+check_file ${CONFIG_LOGGER};
+check_file ${SCRIPT_PLANNER};
 
-# Define result xml file for rss stream
-DEST="/home/sensey/Projects/Wurst/src/wurststatus/xml/update$(date +'%s').xml";
-
-
-# Write a xml file with status
-# for php status-rss stream 
-resultxml () {
-
-	PID=$1;
-	DEST=$2;
-	INFO=$3;
-	NOTICE=$4;
-	ERROR=$5;
-	FATAL=$6;						
-
-	echo "<?xml version=\"1.1\" encoding=\"UTF-8\" ?>" > ${DEST};
-	echo "<response>" >> ${DEST};
-	echo "<task>wurst-update</task>" >> ${DEST};
-	echo "<date>$(date +%s)</date>" >> ${DEST};
-	echo "<status>${?}</status>" >> ${DEST};
-	echo "<log><![CDATA[$(cat ${INFO})]]></log>" >> ${DEST};
-	echo "<notice><![CDATA[$(cat ${NOTICE})]]></notice>" >> ${DEST};
-	echo "<error><![CDATA[$(cat ${ERROR})]]></error>" >> ${DEST};
-	echo "<fatal><![CDATA[$(cat ${FATAL})]]></fatal>" >> ${DEST};
-	echo "</response>" >> ${DEST};
-	kill ${PID}
-	exit;
-}
-
+OUT="${SCRIPT_STD_OUT}";
+ERROR="${SCRIPT_STD_ERR}";
+FATAL="${SCRIPT_STD_FAT}";
+NOTICE="${SCRIPT_STD_NOT}";
+INFO="${SCRIPT_STD_LOG}";
+XML="${SCRIPT_STD_XML}";
 
 echo "Clean: ${OUT}";
 rm -f ${OUT};
@@ -56,15 +37,15 @@ rm -f ${INFO};
 PLANNER_PID=0;
 # Catch sytem signals needs to write 
 # a xml files for rss status stream
-trap 'resultxml ${PLANNER_PID} ${DEST} ${INFO} ${NOTICE} ${ERROR} ${FATAL};' EXIT KILL HUP INT TERM
+trap 'resultxml ${PLANNER_PID} ${XML} ${INFO} ${NOTICE} ${ERROR} ${FATAL}; kill ${PLANNER_PID};' EXIT KILL HUP INT TERM
 
 echo "Run planner: ${SCRIPT_PLANNER}";
-${SCRIPT_PLANNER} 1>>${OUT} 2>> ${ERROR} &
+${SCRIPT_PLANNER} --configlog=${CONFIG_LOGGER} --configfile=${CONFIG_SERVER} 1>>${OUT} 2>> ${ERROR} &
 PLANNER_PID=$!;
 
 # Catch sytem signals needs to write 
 # a xml files for rss status stream
-trap 'resultxml ${PLANNER_PID} ${DEST} ${INFO} ${NOTICE} ${ERROR} ${FATAL};' EXIT KILL HUP INT TERM
+trap 'resultxml ${PLANNER_PID} ${XML} ${INFO} ${NOTICE} ${ERROR} ${FATAL}; kill ${PLANNER_PID};' EXIT KILL HUP INT TERM
 
 echo "Waiting for pid: ${PLANNER_PID}";
 wait ${PLANNER_PID};
