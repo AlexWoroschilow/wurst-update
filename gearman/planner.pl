@@ -111,7 +111,7 @@ $pdbfile->cluster_each( $cluster, my $first, my $last, sub {
 					# This is totally wrong situation
 					# write a report to std error about it
 					# for more details see logs from worker
-					$log->fatal( "Cluster processing failed  ", join( ',', @$acq ) );
+					$log->error( "Cluster processing failed  ", join( ',', @$acq ) );
 				},
 				on_complete => sub {
 
