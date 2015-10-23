@@ -11,12 +11,6 @@ check_file ${SCRIPT_STARTER_SERVER};
 check_file ${SCRIPT_STARTER_PLANNER};
 check_file ${SCRIPT_STARTER_WORKER};
 
-#STARTER_QSUB="qsub -S /bin/bash";
-#STARTER_WORKER="${STARTER_QSUB} $(pwd)/starter-worker.sh";
-#STARTER_PLANNER="${STARTER_QSUB} $(pwd)/starter-planner.sh"
-#STARTER_SERVER="${STARTER_QSUB} $(pwd)/starter-server.sh";
-
-
 echo "Starting scripts..."
 echo "Run: ${SCRIPT_STARTER_SERVER}";
 ${SCRIPT_STARTER_SERVER} 1>>${SCRIPT_STD_OUT} 2>> ${SCRIPT_STD_ERR} &

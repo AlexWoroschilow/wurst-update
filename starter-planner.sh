@@ -35,6 +35,7 @@ rm -f ${INFO};
 
 
 PLANNER_PID=0;
+
 # Catch sytem signals needs to write 
 # a xml files for rss status stream
 trap 'resultxml ${PLANNER_PID} ${XML} ${INFO} ${NOTICE} ${ERROR} ${FATAL};' EXIT KILL HUP INT TERM
