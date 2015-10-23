@@ -1,0 +1,10 @@
+[0][idea] INFO  Wurst.Update.Planner - Config loger:	/home/sensey/Projects/Wurst/src/wurst-gearman/gearman/../input/logger.conf
+[0][idea] INFO  Wurst.Update.Planner - Config server:	/home/sensey/Projects/Wurst/src/wurst-gearman/gearman/../input/server.conf
+[0][idea] INFO  Wurst.Update.Planner - Cluster file: /home/sensey/Projects/Wurst/src/wurst-gearman/gearman/../clusters90.txt
+[1][idea] INFO  Wurst.Update.Planner - Library file: /home/sensey/Projects/Wurst/src/wurst-gearman/gearman/../lib_all.list
+[1][idea] INFO  Wurst.Update.Planner - Output folder: /home/sensey/Projects/Wurst/src/wurst-gearman/gearman/../bin
+[1][idea] INFO  Wurst.Update.Planner - Source folder: /home/sensey/Projects/Wurst/src/wurst-gearman/gearman/../tmp
+[1][idea] INFO  Wurst.Update.Planner - Temporary folder: /home/sensey/Projects/Wurst/src/wurst-gearman/gearman/../tmp
+[1][idea] INFO  Wurst.Update.Planner - Pdb list1 file: /home/sensey/Projects/Wurst/src/wurst-gearman/gearman/../pdb_all.list
+[1][idea] INFO  Wurst.Update.Planner - Pdb list2 file: /home/sensey/Projects/Wurst/src/wurst-gearman/gearman/../pdb_slm.list
+[1][idea] INFO  Wurst.Update.Planner - Pdb list3 file: /home/sensey/Projects/Wurst/src/wurst-gearman/gearman/../pdb_90n.list
