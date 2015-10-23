@@ -1,4 +1,5 @@
-mod/lib/x86_64-linux-gnu/perl/5.20.2/String/CRC32.pm
-mod/lib/x86_64-linux-gnu/perl/5.20.2/String/CRC32.pod
-mod/lib/x86_64-linux-gnu/perl/5.20.2/auto/String/CRC32/CRC32.so
-mod/man/man3/String::CRC32.3pm
+mod/lib/perl5/site_perl/5.18.1/x86_64-linux-thread-multi/String/CRC32.pm
+mod/lib/perl5/site_perl/5.18.1/x86_64-linux-thread-multi/String/CRC32.pod
+mod/lib/perl5/site_perl/5.18.1/x86_64-linux-thread-multi/auto/String/CRC32/CRC32.bs
+mod/lib/perl5/site_perl/5.18.1/x86_64-linux-thread-multi/auto/String/CRC32/CRC32.so
+mod/share/man/man3/String::CRC32.3pm
