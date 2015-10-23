@@ -15,22 +15,22 @@ use Assert qw(dassert);
 use List::MoreUtils qw(zip);
 use PDB::File;
 
-#use lib "/home/other/wurst/salamiServer/v02";
-#use Salamisrvini;
-#use lib $LIB_LIB;     #initialize in local Salamisrvini.pm;
-#use lib $LIB_ARCH;    #initialize in local Salamisrvini.pm;
-#use vars qw ( $INPUT_CLST_LIST $OUTPUT_BIN_DIR $PDB_TOP_DIR $OUTPUT_LIB_LIST);
+use lib "/home/other/wurst/salamiServer/v02";
+use Salamisrvini;
+use lib $LIB_LIB;     #initialize in local Salamisrvini.pm;
+use lib $LIB_ARCH;    #initialize in local Salamisrvini.pm;
+use vars qw ( $INPUT_CLST_LIST $OUTPUT_BIN_DIR $PDB_TOP_DIR $OUTPUT_LIB_LIST);
 
 # Setup available command line parameters
 # with validation, default values and so on
 my @specs = (
 	Param("--cluster")->default("$FindBin::Bin/../clusters90.txt"),
 
-	Param("--library")->default("$FindBin::Bin/../lib_all.list"),
-	Param("--source")->default("$FindBin::Bin/../tmp"),
+#	Param("--library")->default("$FindBin::Bin/../lib_all.list"),
+#	Param("--source")->default("$FindBin::Bin/../tmp"),
 
-	#	Param("--library")->default($OUTPUT_LIB_LIST),
-	#	Param("--source")->default($PDB_TOP_DIR),
+	Param("--library")->default($OUTPUT_LIB_LIST),
+	Param("--source")->default($PDB_TOP_DIR),
 
 	Param("--temp")->default("$FindBin::Bin/../tmp"),
 	Param("--output")->default("$FindBin::Bin/../bin"),
