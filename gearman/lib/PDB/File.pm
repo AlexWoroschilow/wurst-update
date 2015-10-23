@@ -7,13 +7,13 @@ use File::Slurp;
 use File::Copy;
 use Data::Dump qw( dump pp );
 
-#use lib "/home/other/wurst/salamiServer/v02";
-#use Salamisrvini;
+use lib "/home/other/wurst/salamiServer/v02";
+use Salamisrvini;
 
-#use lib $LIB_LIB;     #initialize in local Salamisrvini.pm;
-#use lib $LIB_ARCH;    #initialize in local Salamisrvini.pm;
+use lib $LIB_LIB;     #initialize in local Salamisrvini.pm;
+use lib $LIB_ARCH;    #initialize in local Salamisrvini.pm;
 
-#use Wurst;
+use Wurst;
 
 sub new
 {
