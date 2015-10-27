@@ -63,11 +63,11 @@ $worker->register_function( "cluster_to_bin" => sub {
 		# should be enpacked from json
 		my ( $refs, $refc, $src, $tmp, $dst, $min, $all ) = @{ $json->decode( $_[0]->arg ) };
 
-		my @library = $pdbcluster->write_bins( $refs, $refc, $src, $tmp, $dst, $min, $all );
+		my $library = $pdbcluster->write_bins( $refs, $refc, $src, $tmp, $dst, $min, $all );
 
-		$log->debug( "Send response ", join( ',', @library ) );
+		$log->debug( "Send response ", join( ',', @$library ) );
 		
-		return $json->encode( \@library );
+		return $json->encode( $library );
 } );
 
 # Define worker function to convert
