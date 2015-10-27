@@ -68,7 +68,8 @@ $worker->register_function( "cluster_to_bin" => sub {
 		my @library = $pdbcluster->write_bins( $refs, $refc, $src, $tmp, $dst, $min, $all );
 
 		$log->debug( "Send response ", join( ',', @library ) );
-		$json->encode( \@library );
+		
+		return $json->encode( \@library );
 } );
 
 # Define worker function to convert
