@@ -20,6 +20,7 @@ use Salamisrvini;
 use lib $LIB_LIB;     #initialize in local Salamisrvini.pm;
 use lib $LIB_ARCH;    #initialize in local Salamisrvini.pm;
 use vars qw ( $INPUT_CLST_LIST $OUTPUT_BIN_DIR $PDB_TOP_DIR $OUTPUT_LIB_LIST);
+use vars qw ($CLASSFILE, $CA_CLASSFILE, $PVEC_STRCT_DIR, $PVEC_CA_DIR);
 
 # Setup available command line parameters
 # with validation, default values and so on
@@ -34,6 +35,12 @@ my @specs = (
 
 	Param("--temp")->default("$FindBin::Bin/../tmp"),
 	Param("--output")->default("$FindBin::Bin/../bin"),
+	Param("--outputvec1")->default("$FindBin::Bin/../vec1"),
+	Param("--outputvec2")->default("$FindBin::Bin/../vec2"),
+
+	Param("--classv1")->default($CLASSFILE),
+	Param("--classv2")->default($CA_CLASSFILE),
+
 
 	Param("--list1")->default("$FindBin::Bin/../pdb_all.list"),
 	Param("--list2")->default("$FindBin::Bin/../pdb_slm.list"),
@@ -49,6 +56,12 @@ $opt->validate( {} );
 dassert( ( my $cluster = $opt->get_cluster ), "Cluster file should be defined" );
 dassert( ( my $library = $opt->get_library ), "Library file should be defined" );
 dassert( ( my $output  = $opt->get_output ),  "Output folder should be defined" );
+dassert( ( my $outputvec1  = $opt->get_outputvec1 ),  "Output folder should be defined" );
+dassert( ( my $outputvec2  = $opt->get_outputvec2 ),  "Output folder should be defined" );
+
+dassert( ( my $classv1  = $opt->get_classv1),  "Output folder should be defined" );
+dassert( ( my $classv2  = $opt->get_classv2 ),  "Output folder should be defined" );
+
 dassert( ( my $source  = $opt->get_source ),  "Source folder should be defined" );
 dassert( ( my $temp    = $opt->get_temp ),    "Temp filder should be defined" );
 
@@ -85,52 +98,89 @@ my $pdbfile = PDB::File->new($log);
 # Read cluster from file and
 # store in @acq and  @chain
 $log->debug("Start processing clusters to binary");
-$pdbfile->cluster_each( $cluster, my $first, my $last, sub {
-		my ( $acq, $chain ) = @_;
 
-		$log->debug( "Start processing clusters to binary ", join( ',', @$acq ) );
+#$pdbfile->cluster_each( $cluster, my $first, my $last, sub {
+#		my ( $acq, $chain ) = @_;
+#
+#		$log->debug( "Start processing clusters to binary ", join( ',', @$acq ) );
+#
+#		# This parameters should be pass through
+#		# a network, it may be http or something else
+#		# we do not know and can not be sure
+#		# so just encode to json with respect to order
+#		my $options = $json->encode( [
+#				$acq,       # Pdb cluster
+#				$chain,     # Pdb cluster chains
+#				$source,    # Pdb files source folder
+#				$temp,      # Temporary folder to store unpacked pdb
+#				$output,    # Folder to store binary files
+#				40,         # Minimal structure size
+#				1           # Should calculate all binary files for a cluster
+#		] );
+#
+#		$log->debug( "Prepare gearman task settings ", $options );
+#		$tasks->add_task( "cluster_to_bin" => $options, {
+#				on_fail => sub {
+#
+#					# This is totally wrong situation
+#					# write a report to std error about it
+#					# for more details see logs from worker
+#					$log->error( "Cluster processing failed  ", join( ',', @$acq ) );
+#				},
+#				on_complete => sub {
+#
+#					my $response = $json->decode( ${ $_[0] } );
+#					$log->info( "Cluster processing complete  ", join( ',', @$acq ) );
+#					$log->debug( "Worker response received ", ${ $_[0] } );
+#
+#					# Build a library with proteins
+#					# to make a dump, with correct
+#					# structures only
+#					for ( my $i = 0 ; $i < @$response ; $i++ ) {
+#						push( @library, $$response[$i] );
+#					}
+#				  }
+#		} );
+#} );
+#
+#$tasks->wait;
+#exit;
+
+$pdbfile->list_each( $list1, sub {
+		my ($code) = @_;
 
 		# This parameters should be pass through
 		# a network, it may be http or something else
 		# we do not know and can not be sure
 		# so just encode to json with respect to order
-		my $options = $json->encode( [
-				$acq,       # Pdb cluster
-				$chain,     # Pdb cluster chains
-				$source,    # Pdb files source folder
-				$temp,      # Temporary folder to store unpacked pdb
-				$output,    # Folder to store binary files
-				40,         # Minimal structure size
-				1           # Should calculate all binary files for a cluster
-		] );
+		my $options = $json->encode([ 
+			$code, #library record code
+			$output, # source folder with binary structures
+			$outputvec1, # destination folder with vector structures
+			$outputvec2,
+			$classv1,
+			$classv2
+		]);
 
-		$log->debug( "Prepare gearman task settings ", $options );
-		$tasks->add_task( "cluster_to_bin" => $options, {
+		$tasks->add_task( "bin_to_vec" => $options, {
+
+				# This is totally wrong situation
+				# write a report to std error about it
+				# for more details see logs from worker
 				on_fail => sub {
-
-					# This is totally wrong situation
-					# write a report to std error about it
-					# for more details see logs from worker
-					$log->error( "Cluster processing failed  ", join( ',', @$acq ) );
+					$log->error( "Library record processing failed ", $code );
 				},
 				on_complete => sub {
-
-					my $response = $json->decode( ${ $_[0] } );
-					$log->info( "Cluster processing complete  ", join( ',', @$acq ) );
-					$log->debug( "Worker response received ", ${ $_[0] } );
 
 					# Build a library with proteins
 					# to make a dump, with correct
 					# structures only
-					for ( my $i = 0 ; $i < @$response ; $i++ ) {
-						push( @library, $$response[$i] );
-					}
-				  }
+					$log->info( "Library record processing complete  ", $code );
+				},
 		} );
 } );
 
-$tasks->wait;
-exit;
+#    @struct_list = get_prot_list($libfile);
 
 #file_line_each( $opt->get_list1, sub {
 #		my (@line) = @_;
