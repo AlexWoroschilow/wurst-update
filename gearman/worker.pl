@@ -7,6 +7,10 @@ use lib "$FindBin::Bin/lib";
 
 use JSON;
 use PDB::File;
+use PDB::Cluster;
+use PDB::Bin;
+use PDB::Vec;
+
 use Gearman::Worker;
 use Storable qw( freeze thaw retrieve);
 use Storable qw( freeze );
@@ -49,7 +53,10 @@ my $started = time();
 my $worker  = Gearman::Worker->new;
 $worker->job_servers( read_file($configserver) );
 
-my $pdbfile = PDB::File->new($log);
+my $pdbfile    = PDB::File->new($log);
+my $pdbcluster = PDB::Cluster->new( $log, $pdbfile );
+my $pdbbin     = PDB::Bin->new( $log, $pdbfile );
+
 # Define worker function to convert cluster
 # of pdb structures to binary files
 $worker->register_function( "cluster_to_bin" => sub {
@@ -58,65 +65,26 @@ $worker->register_function( "cluster_to_bin" => sub {
 		# Data have been transfered over network
 		# should be enpacked from json
 		my ( $ref1, $ref2, $src, $tmp, $dst, $min, $all ) = @{ $json->decode( $_[0]->arg ) };
-		
-		dassert( ( my @chain   = @{$ref2} ), "Cluster can not be empty" );
-		dassert( ( my @cluster = @{$ref1} ), "Cluster can not be empty" );
 
-		$log->debug( "Cluster ",        join( ',', @cluster ) );
-		$log->debug( "Cluster chains ", join( ',', @chain ) );
-		$log->debug( "Source folder ",  $src );
-		$log->debug( "Temporary folder ",       $tmp );
-		$log->debug( "Destination folder ",     $dst );
-		$log->debug( "Minimal structure size ", $min );
-		$log->debug( "Process all ",            $all );
+		my @library = $pdbcluster->write_bins( $ref1, $ref2, $src, $tmp, $dst, $min, $all );
 
-		my $total   = 0;
-		my $success = 0;
-		my $library = [];
-
-		for ( my $i = 0 ; $i < @cluster ; $i++ ) {
-
-			if ( $success && !$all ) {
-				last;
-			}
-
-			my $pdb       = $cluster[$i];
-			my $pdb_chain = $chain[$i];
-			$log->debug( "Pdb process ",       $pdb );
-			$log->debug( "Pdb chain process ", $pdb_chain );
-
-			my $config = {
-				'src'   => $src,          # Pdb files source folder
-				'tmp'   => $tmp,          # Temporary folder to store unpacked pdb
-				'dst'   => $dst,          # Folder to store binary files
-				'code'  => $pdb,          # Pdb protain name
-				'chain' => $pdb_chain,    # Pdb protain chain
-				'min'   => $min,          # Minimal size
-			};
-
-			$total++;
-			if ( $pdbfile->write_bin($config) ) {
-				$log->info( "Pdb process success ", $pdb );
-
-				# Fill library with correct
-				# calculated structures needs to write
-				# a file with library proteins
-				push( $library, $pdb );
-				$success++;
-				next
-			}
-			$log->info( "Pdb process fail ", $pdb );
-		}
-		$log->debug( "Send response ", join( ',', $library ) );
-		$json->encode( $library );
+		$log->debug( "Send response ", join( ',', @library ) );
+		$json->encode( \@library );
 } );
 
 # Define worker function to convert
 # single pdb structure to vector file
-#$worker->register_function( "bin_to_vec" => sub {
-#		my ( $pdb, $src, $top, $dst ) = @{ $json->decode( $_[0]->arg ) };
-#
-#} );
+$worker->register_function( "bin_to_vec" => sub {
+		$log->debug( "Received a bin_to_vec ", $_[0]->arg );
+
+		# Data have been transfered over network
+		# should be enpacked from json
+		my ( $code, $source, $dest_v1, $dest_v2, $class_v1, $class_v2 ) = @{ $json->decode( $_[0]->arg ) };
+
+		my $response = $pdbfile->write_vec( $code, $source, $dest_v1, $dest_v2, $class_v1, $class_v2 );
+
+		$log->debug( "Send response ", $response );
+} );
 
 #
 $worker->work( 'stop_if' => sub {
