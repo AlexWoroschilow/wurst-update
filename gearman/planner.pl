@@ -139,8 +139,10 @@ $pdbfile->cluster_each( $cluster, my $first, my $last, sub {
 					for ( my $i = 0 ; $i < @$response ; $i++ ) {
 						push( @library, $$response[$i] );
 					}
-					
-					file_write_silent( $list1,     join( "\n", @library ) );
+
+
+					file_write_silent( $list1,     join( "\n", @library ) ) if $library;
+
 				  }
 		} );
 		
