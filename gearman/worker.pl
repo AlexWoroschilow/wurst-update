@@ -8,8 +8,6 @@ use lib "$FindBin::Bin/lib";
 use JSON;
 use PDB::File;
 use PDB::Cluster;
-use PDB::Bin;
-use PDB::Vec;
 
 use Gearman::Worker;
 use Storable qw( freeze thaw retrieve);
