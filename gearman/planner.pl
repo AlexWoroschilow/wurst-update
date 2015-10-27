@@ -26,8 +26,8 @@ use vars qw ( $INPUT_CLST_LIST $OUTPUT_BIN_DIR $PDB_TOP_DIR $OUTPUT_LIB_LIST);
 my @specs = (
 	Param("--cluster")->default("$FindBin::Bin/../clusters90.txt"),
 
-#	Param("--library")->default("$FindBin::Bin/../lib_all.list"),
-#	Param("--source")->default("$FindBin::Bin/../tmp"),
+	#	Param("--library")->default("$FindBin::Bin/../lib_all.list"),
+	#	Param("--source")->default("$FindBin::Bin/../tmp"),
 
 	Param("--library")->default($OUTPUT_LIB_LIST),
 	Param("--source")->default($PDB_TOP_DIR),
@@ -40,7 +40,6 @@ my @specs = (
 	Param("--classv1")->default($CLASSFILE),
 	Param("--classv2")->default($CA_CLASSFILE),
 
-
 	Param("--list1")->default("$FindBin::Bin/../pdb_all.list"),
 	Param("--list2")->default("$FindBin::Bin/../pdb_slm.list"),
 	Param("--list3")->default("$FindBin::Bin/../pdb_90n.list"),
@@ -52,17 +51,17 @@ my @specs = (
 my $opt = Getopt::Lucid->getopt( \@specs );
 $opt->validate( {} );
 
-dassert( ( my $cluster = $opt->get_cluster ), "Cluster file should be defined" );
-dassert( ( my $library = $opt->get_library ), "Library file should be defined" );
-dassert( ( my $output  = $opt->get_output ),  "Output folder should be defined" );
-dassert( ( my $outputvec1  = $opt->get_outputvec1 ),  "Output folder should be defined" );
-dassert( ( my $outputvec2  = $opt->get_outputvec2 ),  "Output folder should be defined" );
+dassert( ( my $cluster    = $opt->get_cluster ),    "Cluster file should be defined" );
+dassert( ( my $library    = $opt->get_library ),    "Library file should be defined" );
+dassert( ( my $output     = $opt->get_output ),     "Output folder should be defined" );
+dassert( ( my $outputvec1 = $opt->get_outputvec1 ), "Output folder should be defined" );
+dassert( ( my $outputvec2 = $opt->get_outputvec2 ), "Output folder should be defined" );
 
-dassert( ( my $classv1  = $opt->get_classv1),  "Output folder should be defined" );
-dassert( ( my $classv2  = $opt->get_classv2 ),  "Output folder should be defined" );
+dassert( ( my $classv1 = $opt->get_classv1 ), "Output folder should be defined" );
+dassert( ( my $classv2 = $opt->get_classv2 ), "Output folder should be defined" );
 
-dassert( ( my $source  = $opt->get_source ),  "Source folder should be defined" );
-dassert( ( my $temp    = $opt->get_temp ),    "Temp filder should be defined" );
+dassert( ( my $source = $opt->get_source ), "Source folder should be defined" );
+dassert( ( my $temp   = $opt->get_temp ),   "Temp filder should be defined" );
 
 dassert( ( my $list1     = $opt->get_list1 ),      "File with pdb all list should be defined" );
 dassert( ( my $list2     = $opt->get_list2 ),      "File with pdb for salami list should be defined" );
@@ -152,100 +151,42 @@ $pdbfile->list_each( $list1, sub {
 		# a network, it may be http or something else
 		# we do not know and can not be sure
 		# so just encode to json with respect to order
-		my $options = $json->encode([ 
-			$code, #library record code
-			$output, # source folder with binary structures
-			$outputvec1, # destination folder with vector structures
-			$outputvec2,
-			$classv1,
-			$classv2
-		]);
+		my $options = $json->encode( [
+				$code,          #library record code
+				$output,        # source folder with binary structures
+				$outputvec1,    # destination folder for vector structures, version 1
+				$outputvec2,    # destination folder for vector structures, version 2
+				$classv1,       # class file for vector structures, version 1
+				$classv2        # class file for vector structures, version 2
+		] );
 
 		$tasks->add_task( "bin_to_vec" => $options, {
 
-				# This is totally wrong situation
-				# write a report to std error about it
-				# for more details see logs from worker
 				on_fail => sub {
+
+					# This is totally wrong situation
+					# write a report to std error about it
+					# for more details see logs from worker
 					$log->error( "Library record processing failed ", $code );
 				},
 				on_complete => sub {
 
-					# Build a library with proteins
-					# to make a dump, with correct
-					# structures only
-					$log->info( "Library record processing complete  ", $code );
+					if ( $json->decode( ${ $_[0] } ) ) {
+
+						# Build a library with proteins
+						# to make a dump, with correct
+						# structures only
+						$log->info( "Library record processing complete  ", $code );
+						return;
+					}
+
+					$log->info( "Library record processing error  ", $code );
+					return;
+
 				},
 		} );
 } );
 
 $tasks->wait;
 exit;
-#    @struct_list = get_prot_list($libfile);
-
-#file_line_each( $opt->get_list1, sub {
-#		my (@line) = @_;
-#
-#		# This parameters should be pass through
-#		# a network, it may be http or something else
-#		# we do not know and can not be sure
-#		# so just encode to json with respect to order
-#		my @options = $json->encode(
-#			[ @line, "/src", "/top", "/dst", "12" ]
-#		);
-#
-#		$tasks->add_task( "bin_to_vec" => $json->encode(@options), {
-#				on_fail => sub {
-#					print "Fail:\n"; dump(@line);
-#				},
-#				on_complete => sub {
-#				},
-#		} );
-#	  }
-#);
-#
-#$tasks->wait;
-
-#
-#file_line_each( $opt->get_list2, sub {
-#		my (@line) = @_;
-#
-#		my $options = {
-#			'cluster'     => '',
-#			'source'      => '',
-#			'source_top'  => '',
-#			'destination' => '',
-#			'minsize'     => ''
-#		};
-#
-#		$tasks->add_task( 'bin_to_vec' => freeze($options), {
-#				on_fail     => sub { print ", fail\n" },
-#				on_complete => sub { print "bin_to_vec2 complete!\n"; },
-#				on_exception => sub { print ${ $_[0] }, ", exception\n" },
-#				retry_count => 3,
-#		} );
-#} );
-#$tasks->wait;
-#
-#file_line_each( $opt->get_list3, sub {
-#		my (@line) = @_;
-#
-#		my $options = {
-#			'cluster'     => '',
-#			'source'      => '',
-#			'source_top'  => '',
-#			'destination' => '',
-#			'minsize'     => ''
-#		};
-#
-#		$tasks->add_task( 'bin_to_vec' => freeze($options), {
-#				on_fail     => sub { print ", fail\n" },
-#				on_complete => sub { print "bin_to_vec complete!\n"; },
-#				on_exception => sub { print ${ $_[0] }, ", exception\n" },
-#				retry_count => 3,
-#		} );
-#	  }
-#);
-#
-#$tasks->wait;
 

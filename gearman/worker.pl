@@ -55,7 +55,6 @@ $worker->job_servers( read_file($configserver) );
 
 my $pdbfile    = PDB::File->new($log);
 my $pdbcluster = PDB::Cluster->new( $log, $pdbfile );
-my $pdbbin     = PDB::Bin->new( $log, $pdbfile );
 
 # Define worker function to convert cluster
 # of pdb structures to binary files
@@ -64,9 +63,9 @@ $worker->register_function( "cluster_to_bin" => sub {
 
 		# Data have been transfered over network
 		# should be enpacked from json
-		my ( $ref1, $ref2, $src, $tmp, $dst, $min, $all ) = @{ $json->decode( $_[0]->arg ) };
+		my ( $refs, $refc, $src, $tmp, $dst, $min, $all ) = @{ $json->decode( $_[0]->arg ) };
 
-		my @library = $pdbcluster->write_bins( $ref1, $ref2, $src, $tmp, $dst, $min, $all );
+		my @library = $pdbcluster->write_bins( $refs, $refc, $src, $tmp, $dst, $min, $all );
 
 		$log->debug( "Send response ", join( ',', @library ) );
 		$json->encode( \@library );
@@ -84,6 +83,8 @@ $worker->register_function( "bin_to_vec" => sub {
 		my $response = $pdbfile->write_vec( $code, $source, $dest_v1, $dest_v2, $class_v1, $class_v2 );
 
 		$log->debug( "Send response ", $response );
+
+		$json->encode( $response );
 } );
 
 #
