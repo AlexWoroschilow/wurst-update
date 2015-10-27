@@ -179,6 +179,8 @@ $pdbfile->list_each( $list1, sub {
 		} );
 } );
 
+$tasks->wait;
+exit;
 #    @struct_list = get_prot_list($libfile);
 
 #file_line_each( $opt->get_list1, sub {
