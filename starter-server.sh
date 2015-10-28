@@ -1,4 +1,7 @@
 #!/bin/bash
+#$ -clear
+#$ -cwd
+#$ -q stud.q
 set -e
 
 TIMEOUT="120"
