@@ -126,7 +126,6 @@ my @specs = (
 	Param("--configlog")->default("$FindBin::Bin/../etc/logger.conf"),
 );
 
-
 # Parse and validate given parameters
 my $opt = Getopt::Lucid->getopt( \@specs );
 $opt->validate( { 'requires' => [] } );
@@ -149,7 +148,6 @@ $log->info("Host: $host");
 $log->info("Port: $port");
 $log->info("Timeout: $timeout");
 
-
 # Write server settings wor workers
 # this resource should be available for all workers
 # they whould get a server settings to connect
@@ -165,7 +163,6 @@ my $server = Gearman::Server->new(
 );
 
 my $ssock = $server->create_listening_sock( int($port), 'accept_per_loop' => int($accept) );
-
 
 sub shutdown_graceful {
 	if ($graceful_shutdown) {
@@ -186,17 +183,12 @@ sub shutdown_if_calm {
 }
 
 my $started = time;
-Danga::Socket->SetLoopTimeout(1000);
+Danga::Socket->SetLoopTimeout(3);
 Danga::Socket->SetPostLoopCallback( sub {
-		$log->debug("Server have no jobs")    if !$server->jobs;
-		$log->debug("Server have no clients") if !$server->clients;
 		if ( !$server->jobs && !$server->clients ) {
 			my $current    = time;
 			my $difference = $current - $started;
 			my $should_die = $timeout < $difference;
-
-			$log->info( "Shutdown in: ", ( $timeout - $difference ) );
-			$log->info("Shutdown") if $should_die;
 			return !$should_die;
 		}
 		$started = time;
