@@ -79,8 +79,7 @@ $worker->register_function( "bin_to_vec" => sub {
 		# should be enpacked from json
 		my ( $code, $source, $dest_v1, $dest_v2, $class_v1, $class_v2 ) = @{ $json->decode( $_[0]->arg ) };
 
-my $response =1;
-#		my $response = $pdbfile->write_vec( $code, $source, $dest_v1, $dest_v2, $class_v1, $class_v2 );
+		my $response = $pdbfile->write_vec( $code, $source, $dest_v1, $dest_v2, $class_v1, $class_v2 );
 
 		$log->debug( "Send response ", $response );
 		
