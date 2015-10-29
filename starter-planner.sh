@@ -32,7 +32,7 @@ signal_handler () {
 	SCRIPT_SCP="/usr/bin/scp";
 	SCRIPT_SCP="/usr/bin/ssh";
 	DESTINATION_USER="wurst";
-	DESTINATION_HOST="flensburg";
+	DESTINATION_HOST="flensburg.zbh.uni-hamburg.de";
 	DESTINATION_FLENSBURG="/home/other/wurst/wurst_rss/xml";
 
 	echo "<?xml version=\"1.1\" encoding=\"UTF-8\" ?>" > ${SCRIPT_LOG_XML};
