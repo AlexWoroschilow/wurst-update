@@ -53,6 +53,7 @@ sub write_vec_v1 ($) {
 
 	my $gauss_err = 0.4;
 
+	# todo: probablememory leak	
 	my $classfcn = aa_strct_clssfcn_read( $classfile, $gauss_err );
 
 	if ( -e "$dest/$code.vec" ) {
@@ -60,7 +61,9 @@ sub write_vec_v1 ($) {
 		return 1;
 	}
 
+	# todo: probablememory leak
 	my $struct = coord_read($path);
+	# todo: probablememory leak
 	my $pvec = strct_2_prob_vec( $struct, $classfcn, 1 );
 	if ( !$pvec ) {
 		$self->{_logger}->error( "Failed to calculate vector 6 for ", $code );
@@ -68,6 +71,8 @@ sub write_vec_v1 ($) {
 	}
 	prob_vec_write( $pvec, "$dest/$code.vec" );
 	$self->{_logger}->debug( "Vector file has been written ", $code );
+	undef $classfcn, $struct, $pvec;
+	
 	return 1;
 }
 
@@ -78,6 +83,7 @@ sub write_vec_v2 ($) {
 	my $ca_dist_error = 0.385;
 	my $corr_num      = 4;
 
+	# todo: probablememory leak
 	my $classfcn_ca = ac_read_calpha( $classfile, $tau_error, $ca_dist_error, $corr_num );
 
 	if ( -e "$dest/$code.vec" ) {
@@ -85,8 +91,10 @@ sub write_vec_v2 ($) {
 		return 1;
 	}
 
+	# todo: probablememory leak
 	my $struct = coord_read($path);
 
+	# todo: probablememory leak
 	my $pvec = calpha_strct_2_prob_vec( $struct, $classfcn_ca, 1 );
 	if ( !$pvec ) {
 		$self->{_logger}->error( "Failed to calculate vector 7 for ", $code );
@@ -94,6 +102,7 @@ sub write_vec_v2 ($) {
 	}
 	prob_vec_write( $pvec, "$dest/$code.vec" );
 	$self->{_logger}->debug( "Vector file has been written ", $code );
+	undef $classfcn_ca, $struct, $pvec;
 	return 1;
 }
 
