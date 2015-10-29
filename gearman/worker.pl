@@ -111,8 +111,8 @@ $worker->work( 'stop_if' => sub {
 
 		# This process should be shutted down only
 		# if there are not tasks for current worker
-		$log->info( "Shutdown in: ", ( $timeout - $difference ) );
-		$log->info("Shutdown") if $should_die;
+		$log->debug( "Shutdown in: ", ( $timeout - $difference ) );
+		$log->debug("Shutdown") if $should_die;
 		return $should_die;
 } );
 

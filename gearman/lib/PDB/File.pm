@@ -15,6 +15,8 @@ use lib $LIB_ARCH;    #initialize in local Salamisrvini.pm;
 
 use Wurst;
 
+#use vars qw ($CLASSFILE, $CA_CLASSFILE, $PVEC_STRCT_DIR, $PVEC_CA_DIR);
+
 sub new
 {
 	my $class = shift;
@@ -26,11 +28,80 @@ sub new
 	return $self;
 }
 
+sub write_vec ($) {
+
+	my ( $self, $code, $source, $dest_v1, $dest_v2, $class_v1, $class_v2 ) = @_;
+
+
+	my $sources = [$source];
+	
+	my $path = $self->get_path_bin($sources , "$code.bin" );
+
+	unless ( -e $path ) {
+		$self->{_logger}->fatal( "Failed to read  ", $code );
+		print(undef);
+	}
+
+	$self->write_vec_v1( $path, $code, $dest_v1, $class_v1);
+	$self->write_vec_v2( $path, $code, $dest_v2, $class_v2);
+
+	return 1;
+}
+
+sub write_vec_v1 ($) {
+	my ( $self, $path, $code, $dest, $classfile ) = @_;
+
+	my $gauss_err = 0.4;
+
+	my $classfcn = aa_strct_clssfcn_read( $classfile, $gauss_err );
+
+	if ( -e "$dest/$code.vec" ) {
+		$self->{_logger}->debug( "Vector file exists ", $code );
+		return 1;
+	}
+
+	my $struct = coord_read($path);
+	my $pvec = strct_2_prob_vec( $struct, $classfcn, 1 );
+	if ( !$pvec ) {
+		$self->{_logger}->fatal( "Failed to calculate vector 6 for ", $code );
+		return (undef);
+	}
+	prob_vec_write( $pvec, "$dest/$code.vec" );
+	$self->{_logger}->debug( "Vector file has been written ", $code );
+	return 1;
+}
+
+sub write_vec_v2 ($) {
+	my ( $self, $path, $code, $dest, $classfile ) = @_;
+
+	my $tau_error     = 0.15;
+	my $ca_dist_error = 0.385;
+	my $corr_num      = 4;
+
+	my $classfcn_ca = ac_read_calpha( $classfile, $tau_error, $ca_dist_error, $corr_num );
+
+	if ( -e "$dest/$code.vec" ) {
+		$self->{_logger}->debug( "Vector file exists ", $code );
+		return 1;
+	}
+
+	my $struct = coord_read($path);
+
+	my $pvec = calpha_strct_2_prob_vec( $struct, $classfcn_ca, 1 );
+	if ( !$pvec ) {
+		$self->{_logger}->fatal( "Failed to calculate vector 7 for ", $code );
+		return (undef);
+	}
+	prob_vec_write( $pvec, "$dest/$code.vec" );
+	$self->{_logger}->debug( "Vector file has been written ", $code );
+	return 1;
+}
+
 sub write_bin ($) {
 
 	my ( $self, $options ) = @_;
 
-	my $code  = lc( $options->{code} );
+	my $code  = $options->{code};
 	my $chain = $options->{chain};
 	my $min   = $options->{min};
 	my $dst   = $options->{dst};
@@ -87,7 +158,7 @@ sub write_bin ($) {
 	}
 
 	if ( ( -f $file ) ) {
-		$self->{_logger}->info("[$code] Binary file already exists");
+		$self->{_logger}->debug("[$code] Binary file already exists");
 		return 1;
 	}
 
@@ -142,6 +213,20 @@ sub get_path {
 		return (undef);
 	}
 	return $tmppath;
+}
+
+# ----------------------- get_path  ---------------------------------
+# We have a filename and a list of directories where it could
+# be. Return the path if we can find it, otherwise return undef.
+sub get_path_bin (\@ $) {
+	my ( $self, $dirs, $fname ) = @_;
+	foreach my $d (@$dirs) {
+		my $p = "$d/$fname";
+		if ( -f $p ) {
+			return $p;
+		}
+	}
+	return undef;
 }
 
 # ----------------------- check_seq   -------------------------------

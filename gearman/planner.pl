@@ -103,7 +103,7 @@ my $pdbfile = PDB::File->new($log);
 
 # Read cluster from file and convert
 # each pdb file to binary file
-$log->debug("Start processing clusters to binary");
+$log->info("Read clusters and convert pdb to binary files");
 $pdbfile->cluster_each( $cluster, my $first, my $last, sub {
 		my ( $acq, $chain ) = @_;
 
@@ -135,7 +135,7 @@ $pdbfile->cluster_each( $cluster, my $first, my $last, sub {
 				on_complete => sub {
 
 					my $response = $json->decode( ${ $_[0] } );
-					$log->info( "Cluster processing complete  ", join( ',', @$acq ) );
+					$log->debug( "Cluster processing complete  ", join( ',', @$acq ) );
 					$log->debug( "Worker response received ", ${ $_[0] } );
 
 					# Build a library with proteins
@@ -150,7 +150,9 @@ $pdbfile->cluster_each( $cluster, my $first, my $last, sub {
 				  }
 		} );
 } );
+
 $tasks->wait;
+$log->info("Done with clusters");
 
 $log->info( "Write list file ", $list1 );
 file_write_silent( $list1, join( "\n", @$library_out ) );
@@ -164,7 +166,7 @@ file_write_silent( $list3, join( "\n", @$library_out ) );
 # Read file with a list of protein structures
 # filtered by first step, then convert all
 # this structures to vector files
-$log->debug("Start processing binary to vectors");
+$log->debug("Read list with filtered structures and convert binary files to vectors");
 $pdbfile->list_each( $list1, sub {
 		my ($code) = @_;
 
@@ -191,10 +193,11 @@ $pdbfile->list_each( $list1, sub {
 					$log->error( "Library record processing failed ", $code );
 				},
 				on_complete => sub {
-					$log->info( "Library record processing complete ", $code );
+					$log->debug( "Library record processing complete ", $code );
 					$log->debug( "Worker response received ", ${ $_[0] } );
 				},
 		} );
 } );
 
 $tasks->wait;
+$log->debug("Done with filtered structures");
