@@ -56,24 +56,18 @@ sub write_vec_v1 ($) {
 	my $classfcn = aa_strct_clssfcn_read( $classfile, $gauss_err );
 
 	if ( !( -e "$dest/$code.vec" ) ) {
-
-		# todo: probablememory leak
 		my $struct = coord_read($path);
+		if ( ( my $pvec = strct_2_prob_vec( $struct, $classfcn, 1 ) ) ) {
+			prob_vec_write( $pvec, "$dest/$code.vec" );
+			$self->{_logger}->debug( "Vector file has been written ", $code );
+			prob_vec_destroy($pvec);
+		} else {
+			$self->{_logger}->error( "Failed to calculate vector 6 for ", $code );
+		}
 
-		#	# todo: probablememory leak
-		#	my $pvec = strct_2_prob_vec( $struct, $classfcn, 1 );
-		#	if ( !$pvec ) {
-		#		$self->{_logger}->error( "Failed to calculate vector 6 for ", $code );
-		#		return (undef);
-		#	}
-		#	prob_vec_write( $pvec, "$dest/$code.vec" );
-		#	prob_vec_destroy($pvec);
-		#
-		#	$self->{_logger}->debug( "Vector file has been written ", $code );
-		#
+	} else {
+		$self->{_logger}->debug( "Vector file exists ", $code );
 	}
-	$self->{_logger}->debug( "Vector file exists ", $code );
-
 	calpha_clssfcn_destroy($classfcn);
 }
 
@@ -88,23 +82,18 @@ sub write_vec_v2 ($) {
 	my $classfcn_ca = ac_read_calpha( $classfile, $tau_error, $ca_dist_error, $corr_num );
 
 	if ( !( -e "$dest/$code.vec" ) ) {
-		#
-		#	# todo: probablememory leak
-		#	my $struct = coord_read($path);
-		#
-		#	# todo: probablememory leak
-		#	my $pvec = calpha_strct_2_prob_vec( $struct, $classfcn_ca, 1 );
-		#	if ( !$pvec ) {
-		#		$self->{_logger}->error( "Failed to calculate vector 7 for ", $code );
-		#		return (undef);
-		#	}
-		#	prob_vec_write( $pvec, "$dest/$code.vec" );
-		#	prob_vec_destroy($pvec);
-		#	$self->{_logger}->debug( "Vector file has been written ", $code );
-		#
+		my $struct = coord_read($path);
+		if ( ( my $pvec = calpha_strct_2_prob_vec( $struct, $classfcn_ca, 1 ) ) ) {
+			prob_vec_write( $pvec, "$dest/$code.vec" );
+			$self->{_logger}->debug( "Vector file has been written ", $code );
+			prob_vec_destroy($pvec);
+		} else {
+			$self->{_logger}->error( "Failed to calculate vector 7 for ", $code );
+		}
 
+	} else {
+		$self->{_logger}->debug( "Vector file exists ", $code );
 	}
-	$self->{_logger}->debug( "Vector file exists ", $code );
 
 	calpha_clssfcn_destroy($classfcn_ca);
 }
