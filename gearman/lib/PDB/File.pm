@@ -58,7 +58,6 @@ sub write_vec_v1 ($) {
 
 	if ( -e "$dest/$code.vec" ) {
 		$self->{_logger}->debug( "Vector file exists ", $code );
-		return 1;
 	}
 
 	# todo: probablememory leak
@@ -91,7 +90,6 @@ sub write_vec_v2 ($) {
 
 	if ( -e "$dest/$code.vec" ) {
 		$self->{_logger}->debug( "Vector file exists ", $code );
-		return 1;
 	}
 #
 #	# todo: probablememory leak
