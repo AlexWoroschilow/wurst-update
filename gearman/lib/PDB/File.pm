@@ -55,14 +55,13 @@ sub write_vec_v1 ($) {
 
 	# todo: probablememory leak	
 	my $classfcn = aa_strct_clssfcn_read( $classfile, $gauss_err );
-	calpha_clssfcn_destroy($classfcn);
 
-#	if ( -e "$dest/$code.vec" ) {
-#		$self->{_logger}->debug( "Vector file exists ", $code );
-#		return 1;
-#	}
-#
-#	# todo: probablememory leak
+	if ( -e "$dest/$code.vec" ) {
+		$self->{_logger}->debug( "Vector file exists ", $code );
+		return 1;
+	}
+
+	# todo: probablememory leak
 #	my $struct = coord_read($path);
 #	# todo: probablememory leak
 #	my $pvec = strct_2_prob_vec( $struct, $classfcn, 1 );
@@ -75,8 +74,8 @@ sub write_vec_v1 ($) {
 #	
 #	$self->{_logger}->debug( "Vector file has been written ", $code );
 #
-#	calpha_clssfcn_destroy($classfcn);
-	
+
+	calpha_clssfcn_destroy($classfcn);
 	return 1;
 }
 
@@ -89,12 +88,11 @@ sub write_vec_v2 ($) {
 
 	# todo: probablememory leak
 	my $classfcn_ca = ac_read_calpha( $classfile, $tau_error, $ca_dist_error, $corr_num );
-	calpha_clssfcn_destroy($classfcn_ca);
 
-#	if ( -e "$dest/$code.vec" ) {
-#		$self->{_logger}->debug( "Vector file exists ", $code );
-#		return 1;
-#	}
+	if ( -e "$dest/$code.vec" ) {
+		$self->{_logger}->debug( "Vector file exists ", $code );
+		return 1;
+	}
 #
 #	# todo: probablememory leak
 #	my $struct = coord_read($path);
@@ -109,7 +107,7 @@ sub write_vec_v2 ($) {
 #	prob_vec_destroy($pvec);
 #	$self->{_logger}->debug( "Vector file has been written ", $code );
 #		
-#	calpha_clssfcn_destroy($classfcn_ca);
+	calpha_clssfcn_destroy($classfcn_ca);
 
 	return 1;
 }
