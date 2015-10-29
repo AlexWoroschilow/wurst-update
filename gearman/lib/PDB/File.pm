@@ -78,7 +78,6 @@ sub write_vec_v2 ($) {
 	my $ca_dist_error = 0.385;
 	my $corr_num      = 4;
 
-	# todo: probablememory leak
 	my $classfcn_ca = ac_read_calpha( $classfile, $tau_error, $ca_dist_error, $corr_num );
 
 	if ( !( -e "$dest/$code.vec" ) ) {
