@@ -10,44 +10,60 @@ CONFIG_LOGGER="$(pwd)/etc/logger.conf";
 echo "Read config: ${CONFIG}";
 . "/${CONFIG}";
 
-echo "Checking..."
+echo "Checking server config..."
 check_file ${CONFIG_SERVER};
+echo "Checking logger config..."
 check_file ${CONFIG_LOGGER};
+echo "Checking planner script..."
 check_file ${SCRIPT_PLANNER};
 
-OUT="${SCRIPT_STD_OUT}";
-ERROR="${SCRIPT_STD_ERR}";
-FATAL="${SCRIPT_STD_FAT}";
-NOTICE="${SCRIPT_STD_NOT}";
-INFO="${SCRIPT_STD_LOG}";
-XML="${SCRIPT_STD_XML}";
+# Write a xml file with status
+# for php status-rss stream 
+signal_handler () {
 
-echo "Clean: ${OUT}";
-rm -f ${OUT};
-echo "Clean: ${ERROR}";
-rm -f ${ERROR};
-echo "Clean: ${FATAL}";
-rm -f ${FATAL};
-echo "Clean: ${NOTICE}";
-rm -f ${NOTICE};
-echo "Clean: ${INFO}";
-rm -f ${INFO};
+	PLANNER_PID=$1;
+	SCRIPT_LOG_XML=$2;
+	SCRIPT_LOG_INF=$3;
+	SCRIPT_LOG_WRN=$4;
+	SCRIPT_LOG_ERR=$5;
+	SCRIPT_LOG_FAT=$6;
+
+	DESTINATION_USER="wurst"
+	DESTINATION_HOST="flensburg"	
+	DESTINATION_FLENSBURG="/home/other/wurst/wurst_rss/xml";
+
+	echo "<?xml version=\"1.1\" encoding=\"UTF-8\" ?>" > ${SCRIPT_LOG_XML};
+	echo "<response>" >> ${SCRIPT_LOG_XML};
+	echo "<task>wurst-update</task>" >> ${SCRIPT_LOG_XML};
+	echo "<date>$(date +%s)</date>" >> ${SCRIPT_LOG_XML};
+	echo "<status>${?}</status>" >> ${SCRIPT_LOG_XML};
+	echo "<info><![CDATA[$(cat ${SCRIPT_LOG_INF})]]></info>" >> ${SCRIPT_LOG_XML};
+	echo "<warning><![CDATA[$(cat ${SCRIPT_LOG_WRN})]]></warning>" >> ${SCRIPT_LOG_XML};
+	echo "<error><![CDATA[$(cat ${SCRIPT_LOG_ERR})]]></error>" >> ${SCRIPT_LOG_XML};
+	echo "<fatal><![CDATA[$(cat ${SCRIPT_LOG_FAT})]]></fatal>" >> ${SCRIPT_LOG_XML};
+	echo "</response>" >> ${SCRIPT_LOG_XML};
+
+	/usr/bin/scp ${DEST} ${DESTINATION_USER}@${DESTINATION_HOST}:${DESTINATION_FLENSBURG}
+	/usr/bin/ssh ${DESTINATION_USER}@${DESTINATION_HOST} chmod -R 777 ${DESTINATION_FLENSBURG}
+	
+	kill ${PLANNER_PID}
+	exit;
+}
 
 
 PLANNER_PID=0;
-
 # Catch sytem signals needs to write 
 # a xml files for rss status stream
-trap 'resultxml ${PLANNER_PID} ${XML} ${INFO} ${NOTICE} ${ERROR} ${FATAL};' EXIT KILL HUP INT TERM
+trap 'signal_handler ${PLANNER_PID} ${SCRIPT_LOG_XML} ${SCRIPT_LOG_INF} ${SCRIPT_LOG_WRN} ${SCRIPT_LOG_ERR} ${SCRIPT_LOG_FAT};' EXIT KILL HUP INT TERM
 
 echo "Run planner: ${SCRIPT_PLANNER}";
-${SCRIPT_PLANNER} --configlog=${CONFIG_LOGGER} --configfile=${CONFIG_SERVER} 1>>${OUT} 2>> ${ERROR} &
+${SCRIPT_PLANNER} --configlog=${CONFIG_LOGGER} --configfile=${CONFIG_SERVER} 1>>${SCRIPT_STD_OUT} 2>> ${SCRIPT_STD_ERR} &
 PLANNER_PID=$!;
-
 # Catch sytem signals needs to write 
 # a xml files for rss status stream
-trap 'resultxml ${PLANNER_PID} ${XML} ${INFO} ${NOTICE} ${ERROR} ${FATAL};' EXIT KILL HUP INT TERM
+trap 'signal_handler ${PLANNER_PID} ${SCRIPT_LOG_XML} ${SCRIPT_LOG_INF} ${SCRIPT_LOG_WRN} ${SCRIPT_LOG_ERR} ${SCRIPT_LOG_FAT};' EXIT KILL HUP INT TERM
 
 echo "Waiting for pid: ${PLANNER_PID}";
 wait ${PLANNER_PID};
+
 exit;

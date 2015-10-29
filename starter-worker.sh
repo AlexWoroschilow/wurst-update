@@ -4,18 +4,20 @@
 #$ -q stud.q
 set -e
 
-CONFIG="$(pwd)/etc/starter.conf";
 CONFIG_SERVER="$(pwd)/etc/server.conf";
+CONFIG_STARTER="$(pwd)/etc/starter.conf";
 CONFIG_LOGGER="$(pwd)/etc/logger.conf";
 
-echo "Read config: ${CONFIG}";
-. "/${CONFIG}";
+echo "Read config: ${CONFIG_STARTER}";
+. "/${CONFIG_STARTER}";
 
 sleep 3;
 
-echo "Checking..."
+echo "Checking server config..."
 check_file ${CONFIG_SERVER};
+echo "Checking logger config..."
 check_file ${CONFIG_LOGGER};
+echo "Checking worker script..."
 check_file ${SCRIPT_WORKER};
 
 echo "Run worker: ${SCRIPT_WORKER}";
