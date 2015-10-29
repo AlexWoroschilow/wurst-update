@@ -38,7 +38,7 @@ sub write_vec ($) {
 	my $path = $self->get_path_bin($sources , "$code.bin" );
 
 	unless ( -e $path ) {
-		$self->{_logger}->fatal( "Failed to read  ", $code );
+		$self->{_logger}->error( "Failed to read  ", $code );
 		print(undef);
 	}
 
@@ -63,7 +63,7 @@ sub write_vec_v1 ($) {
 	my $struct = coord_read($path);
 	my $pvec = strct_2_prob_vec( $struct, $classfcn, 1 );
 	if ( !$pvec ) {
-		$self->{_logger}->fatal( "Failed to calculate vector 6 for ", $code );
+		$self->{_logger}->error( "Failed to calculate vector 6 for ", $code );
 		return (undef);
 	}
 	prob_vec_write( $pvec, "$dest/$code.vec" );
@@ -89,7 +89,7 @@ sub write_vec_v2 ($) {
 
 	my $pvec = calpha_strct_2_prob_vec( $struct, $classfcn_ca, 1 );
 	if ( !$pvec ) {
-		$self->{_logger}->fatal( "Failed to calculate vector 7 for ", $code );
+		$self->{_logger}->error( "Failed to calculate vector 7 for ", $code );
 		return (undef);
 	}
 	prob_vec_write( $pvec, "$dest/$code.vec" );
@@ -109,51 +109,51 @@ sub write_bin ($) {
 	my $src   = $options->{src};
 
 	if ( !length($code) ) {
-		$self->{_logger}->fatal("[$code] Protein code can not be empty");
+		$self->{_logger}->error("[$code] Protein code can not be empty");
 		return 0;
 	}
 
 	if ( !length($src) ) {
-		$self->{_logger}->fatal("[$code] Source folder can not be empty");
+		$self->{_logger}->error("[$code] Source folder can not be empty");
 		return 0;
 	}
 
 	if ( !length($tmp) ) {
-		$self->{_logger}->fatal("[$code] Temporary folder can not be empty");
+		$self->{_logger}->error("[$code] Temporary folder can not be empty");
 		return 0;
 	}
 
 	if ( !length($dst) ) {
-		$self->{_logger}->fatal("[$code] Destination folder can not be empty");
+		$self->{_logger}->error("[$code] Destination folder can not be empty");
 		return 0;
 	}
 
 	my $file = "$dst/$code$chain.bin";
 	my $path = $self->get_path( $code, $src, $tmp );
 	if ( !$path ) {
-		$self->{_logger}->error("[$code] Pdb file not found in: $src");
+		$self->{_logger}->warn("[$code] Pdb file not found in: $src");
 		return 0;
 	}
 
 	my $read = pdb_read( $path, $code, $chain );
 	if ( !$read ) {
-		$self->{_logger}->error("[$code] Can not read pdb coordinates");
+		$self->{_logger}->warn("[$code] Can not read pdb coordinates");
 		return 0;
 	}
 
 	my $c_size = coord_size($read);
 	if ( $c_size < $min ) {
-		$self->{_logger}->error("[$code] To small");
+		$self->{_logger}->warn("[$code] To small");
 		return 0;
 	}
 
 	if ( !( seq_size( coord_get_seq($read) ) == $c_size ) ) {
-		$self->{_logger}->error("[$code] Sizes are different");
+		$self->{_logger}->warn("[$code] Sizes are different");
 		return 0;
 	}
 
 	if ( !$self->check_sequence($read) ) {
-		$self->{_logger}->error("[$code] Coordinates check failure");
+		$self->{_logger}->warn("[$code] Coordinates check failure");
 		return 0;
 	}
 
@@ -163,12 +163,12 @@ sub write_bin ($) {
 	}
 
 	if ( !coord_2_bin( $read, $file ) ) {
-		$self->{_logger}->error("[$code] Can not write bin file: $file");
+		$self->{_logger}->warn("[$code] Can not write bin file: $file");
 		return 0;
 	}
 
 	if ( !unlink($path) ) {
-		$self->{_logger}->error("[$code] Deleting $path failed");
+		$self->{_logger}->warn("[$code] Deleting $path failed");
 		return 0;
 	}
 	return 1;
@@ -191,25 +191,25 @@ sub get_path {
 	my $path = "$src1/$two_lett/pdb${acq}.ent.gz";
 
 	if ( !( -f $path ) ) {
-		$self->{_logger}->error( "[${acq}] Path not found ", $path );
+		$self->{_logger}->warn( "[${acq}] Path not found ", $path );
 		return (undef);
 	}
 
 	my $tmppath = "$src2/pdb${acq}.ent.gz";
 	if ( !copy( $path, $tmppath ) ) {
-		$self->{_logger}->error( "[${acq}] Can not copy ", $path, $tmppath );
+		$self->{_logger}->warn( "[${acq}] Can not copy ", $path, $tmppath );
 		return (undef);
 	}
 
 	my $r = system( ( "/usr/bin/gunzip", "--force", $tmppath ) );
 	if ( !( $r == 0 ) ) {
-		$self->{_logger}->error( "[${acq}] Gunzip failed on ", $tmppath );
+		$self->{_logger}->warn( "[${acq}] Gunzip failed on ", $tmppath );
 		return (undef);
 	}
 
 	$tmppath =~ s/\.gz$//;
 	if ( !( -f ($tmppath) ) ) {
-		$self->{_logger}->error( "[${acq}] Lost uncompressed file ", $tmppath );
+		$self->{_logger}->warn( "[${acq}] Lost uncompressed file ", $tmppath );
 		return (undef);
 	}
 	return $tmppath;
@@ -248,7 +248,7 @@ sub cluster_each {
 	my ( $infile, $first, $last, $callback ) = @_;
 
 	if ( !( open( CLS_FILE, "<$infile" ) ) ) {
-		$self->{_logger}->fatal("Failed opening $infile");
+		$self->{_logger}->error("Failed opening $infile");
 		return (EXIT_FAILURE);
 	}
 
@@ -311,7 +311,7 @@ sub list_each {
 	my PDB::File $self = shift;
 	my ( $path, $callback ) = @_;
 	if ( !( open( CLS_FILE, "<$path" ) ) ) {
-		$self->{_logger}->fatal("Failed opening $path");
+		$self->{_logger}->error("Failed opening $path");
 		return (EXIT_FAILURE);
 	}
 	while ( my $line = <CLS_FILE> ) {

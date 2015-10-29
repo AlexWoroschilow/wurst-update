@@ -32,7 +32,7 @@ sub write_bins ($) {
 	my $cluster_chain_string = join( ',', @chain );
 
 	if ( !@cluster || !@chain ) {
-		$self->{_logger}->fatal( "Cluster or cluster chain can not be empty ", $cluster_string, $cluster_chain_string );
+		$self->{_logger}->error( "Cluster or cluster chain can not be empty ");
 		return;
 	}
 
