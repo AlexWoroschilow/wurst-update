@@ -30,7 +30,7 @@ signal_handler () {
 	SCRIPT_LOG_FAT=$7;
 
 	SCRIPT_SCP="/usr/bin/scp";
-	SCRIPT_SCP="/usr/bin/ssh";
+	SCRIPT_SSH="/usr/bin/ssh";
 	DESTINATION_USER="wurst";
 	DESTINATION_HOST="flensburg.zbh.uni-hamburg.de";
 	DESTINATION_FLENSBURG="/home/other/wurst/wurst_rss/xml";
@@ -48,7 +48,7 @@ signal_handler () {
 	echo "</response>" >> ${SCRIPT_LOG_XML};
 
 	${SCRIPT_SCP} ${DEST} ${DESTINATION_USER}@${DESTINATION_HOST}:${DESTINATION_FLENSBURG}
-	${SCRIPT_SCP} ${DESTINATION_USER}@${DESTINATION_HOST} chmod -R 777 ${DESTINATION_FLENSBURG}
+	${SCRIPT_SSH} ${DESTINATION_USER}@${DESTINATION_HOST} chmod -R 777 ${DESTINATION_FLENSBURG}
 	
 	kill ${PLANNER_PID}
 	exit;
