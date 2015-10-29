@@ -23,13 +23,15 @@ rm -f ${SCRIPT_LOG_FAT};
 
 
 echo "Run: ${SCRIPT_STARTER_SERVER}";
-SERVER=$(${SCRIPT_STARTER_SERVER} 1>>${SCRIPT_STD_OUT} 2>> ${SCRIPT_STD_ERR} &)
-STARTER_PLANNER="qsub -S /bin/bash -W depend=afterok:${SERVER} ${SCRIPT_STARTER_PLANNER}"
+SERVER=$(qsub -p 0 -S /bin/bash ${SCRIPT_STARTER_SERVER} | tr -d -c 0-9);
+echo "Server SGE Job id: ${SERVER}";
 
+STARTER_PLANNER="qsub -p -1 -S /bin/bash  ${SCRIPT_STARTER_PLANNER}"
 echo "Run: ${SCRIPT_STARTER_PLANNER}";
-PLANNER=$(${STARTER_PLANNER} 1>>${SCRIPT_STD_OUT} 2>> ${SCRIPT_STD_ERR} &)
-STARTER_WORKER="qsub -S /bin/bash -W depend=afterok:${PLANNER} ${SCRIPT_STARTER_WORKER}"
+PLANNER=$(${STARTER_PLANNER} | tr -d -c 0-9)
+echo "Planner SGE Job id: ${PLANNER}";
 
+STARTER_WORKER="qsub -p -2 -S /bin/bash ${SCRIPT_STARTER_WORKER}"
 for i in {1..6}
 do
 	echo "Run: ${STARTER_WORKER}";
