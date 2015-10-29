@@ -43,7 +43,7 @@ signal_handler () {
 	echo "<info><![CDATA[$(cat ${SCRIPT_LOG_INF})]]></info>" >> ${SCRIPT_LOG_XML};
 	echo "<warning><![CDATA[$(cat ${SCRIPT_LOG_WRN})]]></warning>" >> ${SCRIPT_LOG_XML};
 	echo "<error><![CDATA[$(cat ${SCRIPT_LOG_ERR})]]></error>" >> ${SCRIPT_LOG_XML};
-	echo "<stderr><![CDATA[$(cat ${SCRIPT_LOG_ERR})]]></stderr>" >> ${SCRIPT_LOG_XML};
+	echo "<stderr><![CDATA[$(cat ${SCRIPT_STD_ERR})]]></stderr>" >> ${SCRIPT_LOG_XML};
 	echo "<fatal><![CDATA[$(cat ${SCRIPT_LOG_FAT})]]></fatal>" >> ${SCRIPT_LOG_XML};
 	echo "</response>" >> ${SCRIPT_LOG_XML};
 
