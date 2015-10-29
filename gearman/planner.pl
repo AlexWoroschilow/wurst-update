@@ -84,7 +84,7 @@ $log->info("Output folder vec1: $output_vec1");
 $log->info("Output folder vec2: $output_vec2");
 
 $log->info("Class file vec1: $class_vec1");
-$log->info("Class file vev2: $class_vec2");
+$log->info("Class file vec2: $class_vec2");
 
 
 $log->info("Pdb list1 file: $list1");
