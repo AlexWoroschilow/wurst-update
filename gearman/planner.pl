@@ -130,7 +130,7 @@ $pdbfile->cluster_each( $cluster, my $first, my $last, sub {
 					# This is totally wrong situation
 					# write a report to std error about it
 					# for more details see logs from worker
-					$log->error( "Cluster processing failed  ", join( ',', @$acq ) );
+					$log->warn( "Cluster processing failed  ", join( ',', @$acq ) );
 				},
 				on_complete => sub {
 
@@ -190,7 +190,7 @@ $pdbfile->list_each( $list1, sub {
 					# This is totally wrong situation
 					# write a report to std error about it
 					# for more details see logs from worker
-					$log->error( "Library record processing failed ", $code );
+					$log->warn( "Library record processing failed ", $code );
 				},
 				on_complete => sub {
 					$log->debug( "Library record processing complete ", $code );
