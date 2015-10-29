@@ -71,11 +71,9 @@ sub write_vec_v1 ($) {
 	}
 	prob_vec_write( $pvec, "$dest/$code.vec" );
 	$self->{_logger}->debug( "Vector file has been written ", $code );
-	prob_vec_delete($pvec);
-#	prob_vec_free($pvec);
-#	prob_vec_remove($pvec);
-#	prob_vec_destroy($pvec);
-	undef $classfcn, $struct, $pvec;
+
+	prob_vec_destroy($pvec);
+	calpha_clssfcn_destroy($classfcn);
 	
 	return 1;
 }
@@ -106,7 +104,10 @@ sub write_vec_v2 ($) {
 	}
 	prob_vec_write( $pvec, "$dest/$code.vec" );
 	$self->{_logger}->debug( "Vector file has been written ", $code );
-	undef $classfcn_ca, $struct, $pvec;
+
+	prob_vec_destroy($pvec);	
+	calpha_clssfcn_destroy($classfcn_ca);
+
 	return 1;
 }
 
