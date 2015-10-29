@@ -166,7 +166,7 @@ file_write_silent( $list3, join( "\n", @$library_out ) );
 # Read file with a list of protein structures
 # filtered by first step, then convert all
 # this structures to vector files
-$log->debug("Read list with filtered structures and convert binary files to vectors");
+$log->info("Read list with filtered structures and convert binary files to vectors");
 $pdbfile->list_each( $list1, sub {
 		my ($code) = @_;
 
@@ -200,4 +200,4 @@ $pdbfile->list_each( $list1, sub {
 } );
 
 $tasks->wait;
-$log->debug("Done with filtered structures");
+$log->info("Done with filtered structures");
