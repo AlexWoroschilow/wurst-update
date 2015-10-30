@@ -68,7 +68,7 @@ sub write_vec_v1 ($) {
 	} else {
 		$self->{_logger}->debug( "Vector file exists ", $code );
 	}
-	calpha_clssfcn_destroy($classfcn);
+#	calpha_clssfcn_destroy($classfcn);
 }
 
 sub write_vec_v2 ($) {
