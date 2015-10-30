@@ -130,12 +130,12 @@ $pdbfile->cluster_each( $cluster, my $first, my $last, sub {
 					# This is totally wrong situation
 					# write a report to std error about it
 					# for more details see logs from worker
-					$log->error( "Cluster processing failed  ", join( ',', @$acq ) );
+					$log->error( "Cluster processing failed  ", join( ', ', @$acq ) );
 				},
 				on_complete => sub {
 
 					my $response = $json->decode( ${ $_[0] } );
-					$log->debug( "Cluster processing complete  ", join( ',', @$acq ) );
+					$log->debug( "Cluster processing complete  ", join( ', ', @$acq ) );
 					$log->debug( "Worker response received ", ${ $_[0] } );
 
 					# Build a library with proteins
