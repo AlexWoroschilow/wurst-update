@@ -35,7 +35,7 @@ sub write_vec ($) {
 	my $sources = [$source];
 
 	if ( ( my $path = $self->get_path_bin( $sources, "$code.bin" ) ) ) {
-		if ( -e $path ) {
+		if ( $path && ( -e $path ) ) {
 			$self->write_vec_v1( $path, $code, $dest_v1, $class_v1 );
 			$self->write_vec_v2( $path, $code, $dest_v2, $class_v2 );
 		} else {
