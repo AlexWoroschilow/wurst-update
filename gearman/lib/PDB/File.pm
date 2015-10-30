@@ -34,15 +34,15 @@ sub write_vec ($) {
 
 	my $sources = [$source];
 
-	my $path = $self->get_path_bin( $sources, "$code.bin" );
-
-	unless ( -e $path ) {
-		$self->{_logger}->error( "Failed to read  ", $code );
-		print(undef);
+	if ( ( my $path = $self->get_path_bin( $sources, "$code.bin" ) ) ) {
+		if ( -e $path ) {
+			$self->write_vec_v1( $path, $code, $dest_v1, $class_v1 );
+			$self->write_vec_v2( $path, $code, $dest_v2, $class_v2 );
+		} else {
+			$self->{_logger}->error( "Failed to read  ", $code );
+			print(undef);
+		}
 	}
-
-	$self->write_vec_v1( $path, $code, $dest_v1, $class_v1 );
-	$self->write_vec_v2( $path, $code, $dest_v2, $class_v2 );
 
 	return 1;
 }
@@ -52,7 +52,7 @@ sub write_vec_v1 ($) {
 
 	my $gauss_err = 0.4;
 
-	# todo: probablememory leak
+	# todo: probably memory leak
 	my $classfcn = aa_strct_clssfcn_read( $classfile, $gauss_err );
 
 	if ( !( -e "$dest/$code.vec" ) ) {
@@ -68,7 +68,8 @@ sub write_vec_v1 ($) {
 	} else {
 		$self->{_logger}->debug( "Vector file exists ", $code );
 	}
-#	calpha_clssfcn_destroy($classfcn);
+
+	#	calpha_clssfcn_destroy($classfcn);
 }
 
 sub write_vec_v2 ($) {
