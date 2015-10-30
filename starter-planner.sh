@@ -33,7 +33,8 @@ signal_handler () {
 	DESTINATION_USER="wurst";
 	DESTINATION_HOST="flensburg.zbh.uni-hamburg.de";
 	DESTINATION_FLENSBURG="/home/other/wurst/wurst_rss/xml";
-	DESTINATION_FLENSBURG_LOG="${DESTINATION_FLENSBURG}/${SCRIPT_LOG_REMOTE}";
+	DESTINATION_FLENSBURG_RSS="/home/other/wurst/public_html/rss/log";
+	DESTINATION_FLENSBURG_LOG="${DESTINATION_FLENSBURG_RSS}/${SCRIPT_LOG_REMOTE}";
 
 	echo "<?xml version=\"1.1\" encoding=\"UTF-8\" ?>" > ${SCRIPT_LOG_XML};
 	echo "<response>" >> ${SCRIPT_LOG_XML};
