@@ -24,7 +24,7 @@ signal_handler () {
 	PLANNER_PID=$1;
 	SCRIPT_LOG_XML=$2;
 	SCRIPT_LOG_ALL=$3;
-	SCRIPT_LOG_REMOTE="$(date +'%s').log"
+	SCRIPT_LOG_REMOTE="$(date +'%s').log";
 	SCRIPT_STD_ERR=$4;
 		
 
@@ -41,7 +41,7 @@ signal_handler () {
 	echo "<task>wurst-update</task>" >> ${SCRIPT_LOG_XML};
 	echo "<date>$(date +%s)</date>" >> ${SCRIPT_LOG_XML};
 	echo "<status>${?}</status>" >> ${SCRIPT_LOG_XML};
-	echo "<logfile>${SCRIPT_LOG_REM}</logfile>" >> ${SCRIPT_LOG_XML};
+	echo "<logfile><![CDATA[${SCRIPT_LOG_REMOTE}]]></logfile>" >> ${SCRIPT_LOG_XML};
 	echo "<info><![CDATA[$(cat ${SCRIPT_LOG_ALL} | grep INFO | head -300)]]></info>" >> ${SCRIPT_LOG_XML};
 	echo "<warning><![CDATA[$(cat ${SCRIPT_LOG_ALL} | grep WARN | head -300)]]></warning>" >> ${SCRIPT_LOG_XML};
 	echo "<error><![CDATA[$(cat ${SCRIPT_LOG_ALL} | grep ERROR | head -300)]]></error>" >> ${SCRIPT_LOG_XML};
