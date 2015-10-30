@@ -24,20 +24,23 @@ signal_handler () {
 	PLANNER_PID=$1;
 	SCRIPT_LOG_XML=$2;
 	SCRIPT_LOG_ALL=$3;
+	SCRIPT_LOG_REMOTE="$(date +'%s').log"
 	SCRIPT_STD_ERR=$4;
+		
 
 	SCRIPT_SCP="/usr/bin/scp";
 	SCRIPT_SSH="/usr/bin/ssh";
 	DESTINATION_USER="wurst";
 	DESTINATION_HOST="flensburg.zbh.uni-hamburg.de";
 	DESTINATION_FLENSBURG="/home/other/wurst/wurst_rss/xml";
+	DESTINATION_FLENSBURG_LOG="${DESTINATION_FLENSBURG}${SCRIPT_LOG_REMOTE}";
 
 	echo "<?xml version=\"1.1\" encoding=\"UTF-8\" ?>" > ${SCRIPT_LOG_XML};
 	echo "<response>" >> ${SCRIPT_LOG_XML};
 	echo "<task>wurst-update</task>" >> ${SCRIPT_LOG_XML};
 	echo "<date>$(date +%s)</date>" >> ${SCRIPT_LOG_XML};
 	echo "<status>${?}</status>" >> ${SCRIPT_LOG_XML};
-	echo "<logfile>${SCRIPT_LOG_ALL}</logfile>" >> ${SCRIPT_LOG_XML};
+	echo "<logfile>${SCRIPT_LOG_REM}</logfile>" >> ${SCRIPT_LOG_XML};
 	echo "<info><![CDATA[$(cat ${SCRIPT_LOG_ALL} | grep INFO | head -300)]]></info>" >> ${SCRIPT_LOG_XML};
 	echo "<warning><![CDATA[$(cat ${SCRIPT_LOG_ALL} | grep WARN | head -300)]]></warning>" >> ${SCRIPT_LOG_XML};
 	echo "<error><![CDATA[$(cat ${SCRIPT_LOG_ALL} | grep ERROR | head -300)]]></error>" >> ${SCRIPT_LOG_XML};
@@ -46,6 +49,8 @@ signal_handler () {
 	echo "</response>" >> ${SCRIPT_LOG_XML};
 
 	${SCRIPT_SCP} ${SCRIPT_LOG_XML} ${DESTINATION_USER}@${DESTINATION_HOST}:${DESTINATION_FLENSBURG}
+	${SCRIPT_SCP} ${SCRIPT_LOG_ALL} ${DESTINATION_USER}@${DESTINATION_HOST}:${DESTINATION_FLENSBURG_LOG}
+
 	${SCRIPT_SSH} ${DESTINATION_USER}@${DESTINATION_HOST} chmod -R 777 ${DESTINATION_FLENSBURG}
 	
 	kill ${PLANNER_PID}
