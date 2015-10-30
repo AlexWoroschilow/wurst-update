@@ -107,7 +107,7 @@ $log->info("Read clusters and convert pdb to binary files");
 $pdbfile->cluster_each( $cluster, my $first, my $last, sub {
 		my ( $acq, $chain ) = @_;
 
-		$log->debug( "Start processing clusters to binary ", join( ',', @$acq ) );
+		$log->debug( "Start processing clusters to binary ", join( ', ', @$acq ) );
 
 		# This parameters should be pass through
 		# a network, it may be http or something else
