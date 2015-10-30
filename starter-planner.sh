@@ -37,9 +37,10 @@ signal_handler () {
 	echo "<task>wurst-update</task>" >> ${SCRIPT_LOG_XML};
 	echo "<date>$(date +%s)</date>" >> ${SCRIPT_LOG_XML};
 	echo "<status>${?}</status>" >> ${SCRIPT_LOG_XML};
+	echo "<logfile>${SCRIPT_LOG_ALL}</logfile>" >> ${SCRIPT_LOG_XML};
 	echo "<info><![CDATA[$(cat ${SCRIPT_LOG_ALL} | grep INFO | head -300)]]></info>" >> ${SCRIPT_LOG_XML};
-	echo "<warning><![CDATA[$(cat ${SCRIPT_LOG_ALL} | grep WARN | head -300))]]></warning>" >> ${SCRIPT_LOG_XML};
-	echo "<error><![CDATA[$(cat ${SCRIPT_LOG_ALL} | grep ERROR | head -300))]]></error>" >> ${SCRIPT_LOG_XML};
+	echo "<warning><![CDATA[$(cat ${SCRIPT_LOG_ALL} | grep WARN | head -300)]]></warning>" >> ${SCRIPT_LOG_XML};
+	echo "<error><![CDATA[$(cat ${SCRIPT_LOG_ALL} | grep ERROR | head -300)]]></error>" >> ${SCRIPT_LOG_XML};
 	echo "<fatal><![CDATA[$(cat ${SCRIPT_LOG_ALL} | grep FATAL | head -300)]]></fatal>" >> ${SCRIPT_LOG_XML};
 	echo "<stderr><![CDATA[$(head -1000 ${SCRIPT_STD_ERR})]]></stderr>" >> ${SCRIPT_LOG_XML};
 	echo "</response>" >> ${SCRIPT_LOG_XML};
