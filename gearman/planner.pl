@@ -103,56 +103,56 @@ my $pdbfile = PDB::File->new($log);
 
 # Read cluster from file and convert
 # each pdb file to binary file
-$log->info("Read clusters and convert pdb to binary files");
-$pdbfile->cluster_each( $cluster, my $first, my $last, sub {
-		my ( $acq, $chain ) = @_;
-
-		$log->debug( "Start processing clusters to binary ", join( ', ', @$acq ) );
-
-		# This parameters should be pass through
-		# a network, it may be http or something else
-		# we do not know and can not be sure
-		# so just encode to json with respect to order
-		my $options = $json->encode( [
-				$acq,       # Pdb cluster
-				$chain,     # Pdb cluster chains
-				$source,    # Pdb files source folder
-				$temp,      # Temporary folder to store unpacked pdb
-				$output_bin,    # Folder to store binary files
-				40,         # Minimal structure size
-				1           # Should calculate all binary files for a cluster
-		] );
-
-		$log->debug( "Prepare gearman task settings ", $options );
-		$tasks->add_task( "cluster_to_bin" => $options, {
-				on_fail => sub {
-
-					# This is totally wrong situation
-					# write a report to std error about it
-					# for more details see logs from worker
-					$log->error( "Cluster processing failed  ", join( ', ', @$acq ) );
-				},
-				on_complete => sub {
-
-					my $response = $json->decode( ${ $_[0] } );
-					$log->debug( "Cluster processing complete  ", join( ', ', @$acq ) );
-					$log->debug( "Worker response received ", ${ $_[0] } );
-
-					# Build a library with proteins
-					# to make a dump, with correct
-					# structures only
-
-					if ( scalar(@$response) ) {
-						for ( my $i = 0 ; $i < @$response ; $i++ ) {
-							push( $library_out, $$response[$i] );
-						}
-					}
-				  }
-		} );
-} );
-
-$tasks->wait;
-$log->info("Done with clusters");
+#$log->info("Read clusters and convert pdb to binary files");
+#$pdbfile->cluster_each( $cluster, my $first, my $last, sub {
+#		my ( $acq, $chain ) = @_;
+#
+#		$log->debug( "Start processing clusters to binary ", join( ', ', @$acq ) );
+#
+#		# This parameters should be pass through
+#		# a network, it may be http or something else
+#		# we do not know and can not be sure
+#		# so just encode to json with respect to order
+#		my $options = $json->encode( [
+#				$acq,       # Pdb cluster
+#				$chain,     # Pdb cluster chains
+#				$source,    # Pdb files source folder
+#				$temp,      # Temporary folder to store unpacked pdb
+#				$output_bin,    # Folder to store binary files
+#				40,         # Minimal structure size
+#				1           # Should calculate all binary files for a cluster
+#		] );
+#
+#		$log->debug( "Prepare gearman task settings ", $options );
+#		$tasks->add_task( "cluster_to_bin" => $options, {
+#				on_fail => sub {
+#
+#					# This is totally wrong situation
+#					# write a report to std error about it
+#					# for more details see logs from worker
+#					$log->error( "Cluster processing failed  ", join( ', ', @$acq ) );
+#				},
+#				on_complete => sub {
+#
+#					my $response = $json->decode( ${ $_[0] } );
+#					$log->debug( "Cluster processing complete  ", join( ', ', @$acq ) );
+#					$log->debug( "Worker response received ", ${ $_[0] } );
+#
+#					# Build a library with proteins
+#					# to make a dump, with correct
+#					# structures only
+#
+#					if ( scalar(@$response) ) {
+#						for ( my $i = 0 ; $i < @$response ; $i++ ) {
+#							push( $library_out, $$response[$i] );
+#						}
+#					}
+#				  }
+#		} );
+#} );
+#
+#$tasks->wait;
+#$log->info("Done with clusters");
 #
 #$log->info( "Write list file ", $list1 );
 #file_write_silent( $list1, join( "\n", @$library_out ) );
