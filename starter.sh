@@ -12,14 +12,9 @@ echo "Clean logs: ${SCRIPT_STD_ERR}";
 rm -f ${SCRIPT_STD_ERR};
 echo "Clean logs: ${SCRIPT_LOG_ALL}";
 rm -f ${SCRIPT_LOG_ALL};
-echo "Clean logs: ${SCRIPT_LOG_INF}";
-rm -f ${SCRIPT_LOG_INF};
-echo "Clean logs: ${SCRIPT_LOG_WRN}";
-rm -f ${SCRIPT_LOG_WRN};
-echo "Clean logs: ${SCRIPT_LOG_ERR}";
-rm -f ${SCRIPT_LOG_ERR};
-echo "Clean logs: ${SCRIPT_LOG_FAT}";
-rm -f ${SCRIPT_LOG_FAT};
+echo "Clean logs: ${SCRIPT_LOG_XML}";
+rm -f ${SCRIPT_LOG_XML};
+
 
 
 echo "Run: ${SCRIPT_STARTER_SERVER}";
