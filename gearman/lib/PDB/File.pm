@@ -52,24 +52,19 @@ sub write_vec_v1 ($) {
 
 	my $gauss_err = 0.4;
 
-	# todo: probably memory leak
-	my $classfcn = aa_strct_clssfcn_read( $classfile, $gauss_err );
-
 	if ( !( -e "$dest/$code.vec" ) ) {
-		my $struct = coord_read($path);
-		if ( ( my $pvec = strct_2_prob_vec( $struct, $classfcn, 1 ) ) ) {
-			prob_vec_write( $pvec, "$dest/$code.vec" );
-			$self->{_logger}->debug( "Vector file has been written ", $code );
-			prob_vec_destroy($pvec);
-		} else {
-			$self->{_logger}->error( "Failed to calculate vector 6 for ", $code );
-		}
-
-	} else {
 		$self->{_logger}->debug( "Vector file exists ", $code );
+		return;
 	}
 
-	#	calpha_clssfcn_destroy($classfcn);
+	my $struct = coord_read($path);
+	my $classfcn = aa_strct_clssfcn_read( $classfile, $gauss_err );
+	if ( ( my $pvec = strct_2_prob_vec( $struct, $classfcn, 1 ) ) ) {
+		prob_vec_write( $pvec, "$dest/$code.vec" );
+		$self->{_logger}->debug( "Vector file has been written ", $code );
+		return;
+	} 
+	$self->{_logger}->error( "Failed to calculate vector 6 for ", $code );
 }
 
 sub write_vec_v2 ($) {
@@ -79,23 +74,19 @@ sub write_vec_v2 ($) {
 	my $ca_dist_error = 0.385;
 	my $corr_num      = 4;
 
-	my $classfcn_ca = ac_read_calpha( $classfile, $tau_error, $ca_dist_error, $corr_num );
-
-	if ( !( -e "$dest/$code.vec" ) ) {
-		my $struct = coord_read($path);
-		if ( ( my $pvec = calpha_strct_2_prob_vec( $struct, $classfcn_ca, 1 ) ) ) {
-			prob_vec_write( $pvec, "$dest/$code.vec" );
-			$self->{_logger}->debug( "Vector file has been written ", $code );
-			prob_vec_destroy($pvec);
-		} else {
-			$self->{_logger}->error( "Failed to calculate vector 7 for ", $code );
-		}
-
-	} else {
+	if ( ( -e "$dest/$code.vec" ) ) {
 		$self->{_logger}->debug( "Vector file exists ", $code );
+		return;
 	}
 
-	calpha_clssfcn_destroy($classfcn_ca);
+	my $struct = coord_read($path);
+	my $classfcn_ca = ac_read_calpha( $classfile, $tau_error, $ca_dist_error, $corr_num );
+	if ( ( my $pvec = calpha_strct_2_prob_vec( $struct, $classfcn_ca, 1 ) ) ) {
+		prob_vec_write( $pvec, "$dest/$code.vec" );
+		$self->{_logger}->debug( "Vector file has been written ", $code );
+		return ;
+	} 
+	$self->{_logger}->error( "Failed to calculate vector 7 for ", $code );
 }
 
 sub write_bin ($) {
