@@ -63,7 +63,7 @@ sub write_vec_v1 ($) {
 
 #	my $classfcn = $self->{_cache}->get('classfcn');
 #	if ( !( defined $classfcn ) ) {
-		$classfcn = aa_strct_clssfcn_read( $classfile, $gauss_err );
+		my $classfcn = aa_strct_clssfcn_read( $classfile, $gauss_err );
 #		$self->{_cache}->set( 'classfcn', $classfcn );
 #		$self->{_logger}->debug( "Store classfcn in cache ", $code );
 #	}
