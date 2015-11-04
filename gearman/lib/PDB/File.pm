@@ -16,8 +16,6 @@ use lib $LIB_ARCH;    #initialize in local Salamisrvini.pm;
 
 use Wurst;
 
-use vars qw ($CLASSFILE, $CA_CLASSFILE, $PVEC_STRCT_DIR, $PVEC_CA_DIR);
-
 #use vars qw ($CLASSFILE, $CA_CLASSFILE, $PVEC_STRCT_DIR, $PVEC_CA_DIR);
 
 sub new
