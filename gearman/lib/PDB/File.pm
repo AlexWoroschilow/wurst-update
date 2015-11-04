@@ -6,8 +6,9 @@ use POSIX;
 use File::Slurp;
 use File::Copy;
 use Data::Dump qw( dump pp );
+use Cache::MemoryCache;
 
-use lib "/home/other/wurst/salamiServer/v02";
+use lib "/home/other/wurst/salamiServer/v03";
 use Salamisrvini;
 
 use lib $LIB_LIB;     #initialize in local Salamisrvini.pm;
@@ -52,7 +53,7 @@ sub write_vec_v1 ($) {
 
 	my $gauss_err = 0.4;
 
-	if ( !( -e "$dest/$code.vec" ) ) {
+	if ( ( -e "$dest/$code.vec" ) ) {
 		$self->{_logger}->debug( "Vector file exists ", $code );
 		return;
 	}
@@ -64,6 +65,7 @@ sub write_vec_v1 ($) {
 		$self->{_logger}->debug( "Vector file has been written ", $code );
 		return;
 	} 
+	
 	$self->{_logger}->error( "Failed to calculate vector 6 for ", $code );
 }
 
@@ -86,6 +88,7 @@ sub write_vec_v2 ($) {
 		$self->{_logger}->debug( "Vector file has been written ", $code );
 		return ;
 	} 
+	
 	$self->{_logger}->error( "Failed to calculate vector 7 for ", $code );
 }
 
