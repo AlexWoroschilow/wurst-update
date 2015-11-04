@@ -6,7 +6,6 @@ use POSIX;
 use File::Slurp;
 use File::Copy;
 use Data::Dump qw( dump pp );
-use Cache::MemoryCache;
 
 use lib "/home/other/wurst/salamiServer/v03";
 use Salamisrvini;
@@ -23,9 +22,10 @@ sub new
 	my $class = shift;
 	my $self  = {
 		_logger => shift,
-		_cache  => new Cache::MemoryCache( {
-				'namespace' => 'PDBFile'
-			} ),
+		_cache  => {
+			classfcn    => undef,
+			classfcn_ca => undef,
+		  }
 	};
 
 	bless $self, $class;
@@ -61,9 +61,12 @@ sub write_vec_v1 ($) {
 		return;
 	}
 
-	my $classfcn = aa_strct_clssfcn_read( $classfile, $gauss_err );
-	$self->{_cache}->set( 'classfcn', $classfcn );
-	$self->{_logger}->debug( "Store classfcn in cache ", $code );
+	my $classfcn = $self->{_cache}->{classfcn};
+	if ( not defined $classfcn ) {
+		$classfcn = aa_strct_clssfcn_read( $classfile, $gauss_err );
+		$self->{_cache}->{classfcn} = $classfcn;
+		$self->{_logger}->debug( "Store classfcn in cache ", $code );
+	}
 
 	my $struct = coord_read($path);
 	if ( ( my $pvec = strct_2_prob_vec( $struct, $classfcn, 1 ) ) ) {
@@ -88,9 +91,10 @@ sub write_vec_v2 ($) {
 	}
 
 	my $classfcn_ca = ac_read_calpha( $classfile, $tau_error, $ca_dist_error, $corr_num );
-#	$self->{_cache}->set( "classfcn_ca", $classfcn_ca );
-#	$self->{_logger}->debug( "Store classfcn_ca in cache ", $code );
-	
+
+	#	$self->{_cache}->set( "classfcn_ca", $classfcn_ca );
+	#	$self->{_logger}->debug( "Store classfcn_ca in cache ", $code );
+
 	my $struct = coord_read($path);
 	if ( ( my $pvec = calpha_strct_2_prob_vec( $struct, $classfcn_ca, 1 ) ) ) {
 		prob_vec_write( $pvec, "$dest/$code.vec" );
