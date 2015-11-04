@@ -25,7 +25,7 @@ sub new
 		_logger => shift,
 		_cache  => new Cache::MemoryCache( {
 				'namespace' => 'PDBFile'
-		} ),
+			} ),
 	};
 
 	bless $self, $class;
@@ -61,8 +61,14 @@ sub write_vec_v1 ($) {
 		return;
 	}
 
+
+	my $classfcn = $self->{_cache}->get('classfcn');
+	if ( not defined $classfcn ) {
+		$classfcn = aa_strct_clssfcn_read( $classfile, $gauss_err );
+    	$self->{_cache}->set( 'classfcn', $classfcn );
+	}
+
 	my $struct = coord_read($path);
-	my $classfcn = aa_strct_clssfcn_read( $classfile, $gauss_err );
 	if ( ( my $pvec = strct_2_prob_vec( $struct, $classfcn, 1 ) ) ) {
 		prob_vec_write( $pvec, "$dest/$code.vec" );
 		$self->{_logger}->debug( "Vector file has been written ", $code );
