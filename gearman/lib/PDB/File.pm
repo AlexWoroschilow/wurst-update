@@ -62,7 +62,7 @@ sub write_vec_v1 ($) {
 	}
 
 	my $classfcn = aa_strct_clssfcn_read( $classfile, $gauss_err );
-	$self->{_cache}->set( 'classfcn', 'asdf' );
+	$self->{_cache}->set( 'classfcn', $classfcn );
 	$self->{_logger}->debug( "Store classfcn in cache ", $code );
 
 	my $struct = coord_read($path);
