@@ -62,7 +62,7 @@ sub write_vec_v1 ($) {
 	}
 
 	my $classfcn = aa_strct_clssfcn_read( $classfile, $gauss_err );
-	$self->{_cache}->set( "classfcn", $classfcn );
+	$self->{_cache}->set( 'classfcn', 'asdf' );
 	$self->{_logger}->debug( "Store classfcn in cache ", $code );
 
 	my $struct = coord_read($path);
@@ -88,8 +88,8 @@ sub write_vec_v2 ($) {
 	}
 
 	my $classfcn_ca = ac_read_calpha( $classfile, $tau_error, $ca_dist_error, $corr_num );
-	$self->{_cache}->set( "classfcn_ca", $classfcn_ca );
-	$self->{_logger}->debug( "Store classfcn_ca in cache ", $code );
+#	$self->{_cache}->set( "classfcn_ca", $classfcn_ca );
+#	$self->{_logger}->debug( "Store classfcn_ca in cache ", $code );
 	
 	my $struct = coord_read($path);
 	if ( ( my $pvec = calpha_strct_2_prob_vec( $struct, $classfcn_ca, 1 ) ) ) {
