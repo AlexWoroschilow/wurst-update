@@ -16,6 +16,8 @@ use lib $LIB_ARCH;    #initialize in local Salamisrvini.pm;
 
 use Wurst;
 
+use vars qw ($CLASSFILE, $CA_CLASSFILE, $PVEC_STRCT_DIR, $PVEC_CA_DIR);
+
 #use vars qw ($CLASSFILE, $CA_CLASSFILE, $PVEC_STRCT_DIR, $PVEC_CA_DIR);
 
 sub new
@@ -23,6 +25,9 @@ sub new
 	my $class = shift;
 	my $self  = {
 		_logger => shift,
+		_cache  => new Cache::MemoryCache( {
+				'namespace' => 'PDBFile'
+		} ),
 	};
 
 	bless $self, $class;
@@ -64,8 +69,8 @@ sub write_vec_v1 ($) {
 		prob_vec_write( $pvec, "$dest/$code.vec" );
 		$self->{_logger}->debug( "Vector file has been written ", $code );
 		return;
-	} 
-	
+	}
+
 	$self->{_logger}->error( "Failed to calculate vector 6 for ", $code );
 }
 
@@ -86,9 +91,9 @@ sub write_vec_v2 ($) {
 	if ( ( my $pvec = calpha_strct_2_prob_vec( $struct, $classfcn_ca, 1 ) ) ) {
 		prob_vec_write( $pvec, "$dest/$code.vec" );
 		$self->{_logger}->debug( "Vector file has been written ", $code );
-		return ;
-	} 
-	
+		return;
+	}
+
 	$self->{_logger}->error( "Failed to calculate vector 7 for ", $code );
 }
 
