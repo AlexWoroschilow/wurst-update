@@ -90,10 +90,12 @@ sub write_vec_v2 ($) {
 		return;
 	}
 
-	my $classfcn_ca = ac_read_calpha( $classfile, $tau_error, $ca_dist_error, $corr_num );
-
-	#	$self->{_cache}->set( "classfcn_ca", $classfcn_ca );
-	#	$self->{_logger}->debug( "Store classfcn_ca in cache ", $code );
+	my $classfcn_ca = $self->{_cache}->{classfcn_ca};
+	if ( not defined $classfcn_ca ) {
+		$classfcn_ca = ac_read_calpha( $classfile, $tau_error, $ca_dist_error, $corr_num );
+		$self->{_cache}->{classfcn_ca} = $classfcn_ca;
+		$self->{_logger}->debug( "Store classfcn_ca in cache ", $code );
+	}
 
 	my $struct = coord_read($path);
 	if ( ( my $pvec = calpha_strct_2_prob_vec( $struct, $classfcn_ca, 1 ) ) ) {
