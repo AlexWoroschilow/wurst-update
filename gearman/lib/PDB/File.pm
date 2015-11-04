@@ -62,7 +62,7 @@ sub write_vec_v1 ($) {
 	}
 
 	my $classfcn = $self->{_cache}->get('classfcn');
-	if ( !( defined $classfcn ) ) {
+	if ( not defined $classfcn ) {
 		$classfcn = aa_strct_clssfcn_read( $classfile, $gauss_err );
 		$self->{_cache}->set( 'classfcn', $classfcn );
 		$self->{_logger}->debug( "Store classfcn in cache ", $code );
@@ -91,7 +91,7 @@ sub write_vec_v2 ($) {
 	}
 
 	my $classfcn_ca = $self->{_cache}->get('classfcn_ca');
-	if ( !( defined $classfcn_ca ) ) {
+	if ( not defined $classfcn_ca ) {
 		$classfcn_ca = ac_read_calpha( $classfile, $tau_error, $ca_dist_error, $corr_num );
 		$self->{_cache}->set( 'classfcn_ca', $classfcn_ca );
 		$self->{_logger}->debug( "Store classfcn_ca in cache ", $code );
