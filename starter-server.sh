@@ -2,6 +2,7 @@
 #$ -clear
 #$ -cwd
 #$ -q stud.q
+#$ -S /bin/bash
 set -e
 
 SERVER_TIMEOUT="120"

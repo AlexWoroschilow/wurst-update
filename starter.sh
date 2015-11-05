@@ -18,15 +18,15 @@ rm -f ${SCRIPT_LOG_XML};
 
 
 echo "Run: ${SCRIPT_STARTER_SERVER}";
-SERVER=$(qsub -p 0 -S /bin/bash ${SCRIPT_STARTER_SERVER} | tr -d -c 0-9);
+SERVER=$(qsub -S /bin/bash ${SCRIPT_STARTER_SERVER} | tr -d -c 0-9);
 echo "Server SGE Job id: ${SERVER}";
 
-STARTER_PLANNER="qsub -p -10 -S /bin/bash  ${SCRIPT_STARTER_PLANNER}"
+STARTER_PLANNER="qsub -S /bin/bash  ${SCRIPT_STARTER_PLANNER}"
 echo "Run: ${STARTER_PLANNER}";
 PLANNER=$(${STARTER_PLANNER} | tr -d -c 0-9)
 echo "Planner SGE Job id: ${PLANNER}";
 
-STARTER_WORKER="qsub -t 1-8 -p -20 -S /bin/bash ${SCRIPT_STARTER_WORKER}"
+STARTER_WORKER="qsub -S /bin/bash ${SCRIPT_STARTER_WORKER}"
 echo "Run: ${STARTER_WORKER}";
 ${STARTER_WORKER} 1>>${SCRIPT_STD_OUT} 2>> ${SCRIPT_STD_ERR} &
 

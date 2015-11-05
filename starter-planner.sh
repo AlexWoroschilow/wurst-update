@@ -1,7 +1,9 @@
 #!/bin/bash
 #$ -clear
 #$ -cwd
+#$ -p -10 
 #$ -q stud.q
+#$ -S /bin/bash
 set -e
 
 CONFIG="$(pwd)/etc/starter.conf";

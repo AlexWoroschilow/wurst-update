@@ -1,7 +1,10 @@
 #!/bin/bash
 #$ -clear
 #$ -cwd
+#$ -t 1-8 
+#$ -p -20
 #$ -q stud.q
+#$ -S /bin/bash
 set -e
 
 CONFIG_SERVER="$(pwd)/etc/server.conf";
