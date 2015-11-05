@@ -139,6 +139,12 @@ sub write_bin ($) {
 	}
 
 	my $file = "$dst/$code$chain.bin";
+
+	if ( ( -f $file ) ) {
+		$self->{_logger}->debug("[$code] Binary file already exists");
+		return 1;
+	}
+
 	my $path = $self->get_path( $code, $src, $tmp );
 	if ( !$path ) {
 		$self->{_logger}->warn("[$code] Pdb file not found in: $src");
@@ -165,11 +171,6 @@ sub write_bin ($) {
 	if ( !$self->check_sequence($read) ) {
 		$self->{_logger}->warn("[$code] Coordinates check failure");
 		return 0;
-	}
-
-	if ( ( -f $file ) ) {
-		$self->{_logger}->debug("[$code] Binary file already exists");
-		return 1;
 	}
 
 	if ( !coord_2_bin( $read, $file ) ) {
