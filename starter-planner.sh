@@ -32,15 +32,6 @@ signal_handler () {
 	SCRIPT_LOG_REMOTE_XML="${TIMESTAMP}.xml";
 	SCRIPT_LOG_REMOTE_TXT="${TIMESTAMP}.log";
 
-	SCRIPT_SCP="/usr/bin/scp";
-	SCRIPT_SSH="/usr/bin/ssh";
-	DESTINATION_USER="wurst";
-	DESTINATION_HOST="flensburg.zbh.uni-hamburg.de";
-	DESTINATION_FLENSBURG="/home/other/wurst/wurst_rss/xml";
-	DESTINATION_FLENSBURG_XML="${DESTINATION_FLENSBURG}/${SCRIPT_LOG_REMOTE_XML}";
-	DESTINATION_FLENSBURG_RSS="/home/other/wurst/public_html/rss/log";
-	DESTINATION_FLENSBURG_TXT="${DESTINATION_FLENSBURG_RSS}/${SCRIPT_LOG_REMOTE_TXT}";
-
 	echo "<?xml version=\"1.1\" encoding=\"UTF-8\" ?>" > ${SCRIPT_LOG_XML};
 	echo "<response>" >> ${SCRIPT_LOG_XML};
 	echo "<task>wurst-update</task>" >> ${SCRIPT_LOG_XML};
@@ -54,9 +45,19 @@ signal_handler () {
 	echo "<stderr><![CDATA[$(head -1000 ${SCRIPT_STD_ERR})]]></stderr>" >> ${SCRIPT_LOG_XML};
 	echo "</response>" >> ${SCRIPT_LOG_XML};
 
+	SCRIPT_SCP="/usr/bin/scp";
+	DESTINATION_USER="wurst";
+	DESTINATION_HOST="flensburg.zbh.uni-hamburg.de";
+
+	DESTINATION_FLENSBURG="/home/other/wurst/wurst_rss/xml";
+	DESTINATION_FLENSBURG_XML="${DESTINATION_FLENSBURG}/${SCRIPT_LOG_REMOTE_XML}";
 	${SCRIPT_SCP} ${SCRIPT_LOG_XML} ${DESTINATION_USER}@${DESTINATION_HOST}:${DESTINATION_FLENSBURG_XML}
+
+	DESTINATION_FLENSBURG_RSS="/home/other/wurst/public_html/rss/log";
+	DESTINATION_FLENSBURG_TXT="${DESTINATION_FLENSBURG_RSS}/${SCRIPT_LOG_REMOTE_TXT}";	
 	${SCRIPT_SCP} ${SCRIPT_LOG_ALL} ${DESTINATION_USER}@${DESTINATION_HOST}:${DESTINATION_FLENSBURG_TXT}
 
+	SCRIPT_SSH="/usr/bin/ssh";
 	${SCRIPT_SSH} ${DESTINATION_USER}@${DESTINATION_HOST} chmod -R 777 ${DESTINATION_FLENSBURG}
 	
 	kill ${PLANNER_PID}
