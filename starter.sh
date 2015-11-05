@@ -22,7 +22,7 @@ SERVER=$(qsub -p 0 -S /bin/bash ${SCRIPT_STARTER_SERVER} | tr -d -c 0-9);
 echo "Server SGE Job id: ${SERVER}";
 
 STARTER_PLANNER="qsub -p -10 -S /bin/bash  ${SCRIPT_STARTER_PLANNER}"
-echo "Run: ${SCRIPT_STARTER_PLANNER}";
+echo "Run: ${STARTER_PLANNER}";
 PLANNER=$(${STARTER_PLANNER} | tr -d -c 0-9)
 echo "Planner SGE Job id: ${PLANNER}";
 
