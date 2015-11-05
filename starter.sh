@@ -26,10 +26,7 @@ echo "Run: ${STARTER_PLANNER}";
 PLANNER=$(${STARTER_PLANNER} | tr -d -c 0-9)
 echo "Planner SGE Job id: ${PLANNER}";
 
-STARTER_WORKER="qsub -p -20 -S /bin/bash ${SCRIPT_STARTER_WORKER}"
-for i in {1..6}
-do
-	echo "Run: ${STARTER_WORKER}";
-	${STARTER_WORKER} 1>>${SCRIPT_STD_OUT} 2>> ${SCRIPT_STD_ERR} &
-done
+STARTER_WORKER="qsub -t 1-8 -p -20 -S /bin/bash ${SCRIPT_STARTER_WORKER}"
+echo "Run: ${STARTER_WORKER}";
+${STARTER_WORKER} 1>>${SCRIPT_STD_OUT} 2>> ${SCRIPT_STD_ERR} &
 
