@@ -21,12 +21,12 @@ echo "Run: ${SCRIPT_STARTER_SERVER}";
 SERVER=$(qsub -p 0 -S /bin/bash ${SCRIPT_STARTER_SERVER} | tr -d -c 0-9);
 echo "Server SGE Job id: ${SERVER}";
 
-STARTER_PLANNER="qsub -p -1 -S /bin/bash  ${SCRIPT_STARTER_PLANNER}"
+STARTER_PLANNER="qsub -p -10 -S /bin/bash  ${SCRIPT_STARTER_PLANNER}"
 echo "Run: ${SCRIPT_STARTER_PLANNER}";
 PLANNER=$(${STARTER_PLANNER} | tr -d -c 0-9)
 echo "Planner SGE Job id: ${PLANNER}";
 
-STARTER_WORKER="qsub -p -2 -S /bin/bash ${SCRIPT_STARTER_WORKER}"
+STARTER_WORKER="qsub -p -20 -S /bin/bash ${SCRIPT_STARTER_WORKER}"
 for i in {1..6}
 do
 	echo "Run: ${STARTER_WORKER}";
