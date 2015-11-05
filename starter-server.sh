@@ -29,12 +29,14 @@ echo "Server pid: ${SERVER_PID}";
 # has been killed or die
 trap 'kill ${SERVER_PID};' EXIT KILL HUP INT TERM
 
-
+# Start planner 
+# it is not possible to use a dependency in tasks
+# so i have to start a planner after server started
+# it is something like a dependency
 STARTER_PLANNER="qsub -S /bin/bash  ${SCRIPT_STARTER_PLANNER}"
 echo "Run: ${STARTER_PLANNER}";
 PLANNER=$(${STARTER_PLANNER} | tr -d -c 0-9)
 echo "Planner SGE Job id: ${PLANNER}";
-
 
 wait ${SERVER_PID};
 exit;

@@ -1,7 +1,6 @@
 #!/bin/bash
 #$ -clear
 #$ -cwd
-#$ -p -10 
 #$ -q stud.q
 #$ -S /bin/bash
 set -e
@@ -78,6 +77,10 @@ PLANNER_PID=$!;
 trap 'signal_handler ${PLANNER_PID} ${SCRIPT_LOG_XML} ${SCRIPT_LOG_ALL} ${SCRIPT_STD_ERR};' EXIT KILL HUP INT TERM
 
 
+# Start planner 
+# it is not possible to use a dependency in tasks
+# so i have to start a workers after planner started
+# it is something like a dependency
 STARTER_WORKER="qsub -S /bin/bash ${SCRIPT_STARTER_WORKER}"
 echo "Run: ${STARTER_WORKER}";
 ${STARTER_WORKER} 1>>${SCRIPT_STD_OUT} 2>> ${SCRIPT_STD_ERR} &
