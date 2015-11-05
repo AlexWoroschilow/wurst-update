@@ -29,5 +29,12 @@ echo "Server pid: ${SERVER_PID}";
 # has been killed or die
 trap 'kill ${SERVER_PID};' EXIT KILL HUP INT TERM
 
+
+STARTER_PLANNER="qsub -S /bin/bash  ${SCRIPT_STARTER_PLANNER}"
+echo "Run: ${STARTER_PLANNER}";
+PLANNER=$(${STARTER_PLANNER} | tr -d -c 0-9)
+echo "Planner SGE Job id: ${PLANNER}";
+
+
 wait ${SERVER_PID};
 exit;

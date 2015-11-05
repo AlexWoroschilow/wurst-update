@@ -77,6 +77,12 @@ PLANNER_PID=$!;
 # a xml files for rss status stream
 trap 'signal_handler ${PLANNER_PID} ${SCRIPT_LOG_XML} ${SCRIPT_LOG_ALL} ${SCRIPT_STD_ERR};' EXIT KILL HUP INT TERM
 
+
+STARTER_WORKER="qsub -S /bin/bash ${SCRIPT_STARTER_WORKER}"
+echo "Run: ${STARTER_WORKER}";
+${STARTER_WORKER} 1>>${SCRIPT_STD_OUT} 2>> ${SCRIPT_STD_ERR} &
+
+
 echo "Waiting for pid: ${PLANNER_PID}";
 wait ${PLANNER_PID};
 
