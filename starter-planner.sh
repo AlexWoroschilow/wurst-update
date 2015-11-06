@@ -37,14 +37,13 @@ signal_handler () {
 	echo "<date>$(date +%s)</date>" >> ${SCRIPT_LOG_XML};
 	echo "<status>${?}</status>" >> ${SCRIPT_LOG_XML};
 	echo "<logfile><![CDATA[${SCRIPT_LOG_REMOTE_TXT}]]></logfile>" >> ${SCRIPT_LOG_XML};
-	echo "<info><![CDATA[$(cat ${SCRIPT_LOG_ALL} | grep INFO | head -300)]]></info>" >> ${SCRIPT_LOG_XML};
-	echo "<warning><![CDATA[$(cat ${SCRIPT_LOG_ALL} | grep WARN | head -300)]]></warning>" >> ${SCRIPT_LOG_XML};
-	echo "<error><![CDATA[$(cat ${SCRIPT_LOG_ALL} | grep ERROR | head -300)]]></error>" >> ${SCRIPT_LOG_XML};
-	echo "<fatal><![CDATA[$(cat ${SCRIPT_LOG_ALL} | grep FATAL | head -300)]]></fatal>" >> ${SCRIPT_LOG_XML};
-	echo "<stderr><![CDATA[$(head -1000 ${SCRIPT_STD_ERR})]]></stderr>" >> ${SCRIPT_LOG_XML};
+	echo "<info><![CDATA[$(cat ${SCRIPT_LOG_ALL} | grep INFO | head -50)]]></info>" >> ${SCRIPT_LOG_XML};
+	echo "<warning><![CDATA[$(cat ${SCRIPT_LOG_ALL} | grep WARN | head -50)]]></warning>" >> ${SCRIPT_LOG_XML};
+	echo "<error><![CDATA[$(cat ${SCRIPT_LOG_ALL} | grep ERROR | head -50)]]></error>" >> ${SCRIPT_LOG_XML};
+	echo "<fatal><![CDATA[$(cat ${SCRIPT_LOG_ALL} | grep FATAL | head -50)]]></fatal>" >> ${SCRIPT_LOG_XML};
+	echo "<stderr><![CDATA[$(head -50 ${SCRIPT_STD_ERR})]]></stderr>" >> ${SCRIPT_LOG_XML};
 	echo "</response>" >> ${SCRIPT_LOG_XML};
 
-	SCRIPT_SCP="/usr/bin/scp";
 	DESTINATION_USER="wurst";
 	DESTINATION_HOST="flensburg.zbh.uni-hamburg.de";
 
@@ -54,10 +53,10 @@ signal_handler () {
 
 	DESTINATION_FLENSBURG_RSS="/home/other/wurst/public_html/rss/log";
 	DESTINATION_FLENSBURG_TXT="${DESTINATION_FLENSBURG_RSS}/${SCRIPT_LOG_REMOTE_TXT}";	
-	${SCRIPT_SCP} ${SCRIPT_LOG_ALL} ${DESTINATION_USER}@${DESTINATION_HOST}:${DESTINATION_FLENSBURG_TXT}
+	cat ${SCRIPT_STD_ERR} >> ${SCRIPT_LOG_ALL};
+	scp ${SCRIPT_LOG_ALL} ${DESTINATION_USER}@${DESTINATION_HOST}:${DESTINATION_FLENSBURG_TXT}
 
-	SCRIPT_SSH="/usr/bin/ssh";
-	${SCRIPT_SSH} ${DESTINATION_USER}@${DESTINATION_HOST} chmod -R 777 ${DESTINATION_FLENSBURG}
+	ssh ${DESTINATION_USER}@${DESTINATION_HOST} chmod -R 777 ${DESTINATION_FLENSBURG}
 	
 	kill ${PLANNER_PID}
 	exit;
