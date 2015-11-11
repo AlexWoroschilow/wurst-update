@@ -25,7 +25,7 @@ sub should_die ($ $) {
 	$self->{_logger}->debug("Worker is idle") if $is_idle;
 
 	my $timeout    = $self->{_timeout1};
-	my $started    = $self->{started};
+	my $started    = $self->{_started};
 	my $requestred = time();
 
 	# We have to use different timeouts
