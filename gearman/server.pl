@@ -122,7 +122,8 @@ my @specs = (
 	Param("--accept")->default(10)->valid(qr/\d+/),
 	Param("--wakeup")->default(3),
 	Param("--wakeup_delay")->default(1)->valid(qr/\d+/),
-	Param("--timeout")->default(20)->valid(qr/\d+/),
+	Param("--timeout1")->default( ( 5 * 60 ) )->valid(qr/\d+/),
+	Param("--timeout2")->default(30)->valid(qr/\d+/),
 	Param("--configfile")->default("$FindBin::Bin/../etc/server.conf"),
 	Param("--configlog")->default("$FindBin::Bin/../etc/logger.conf"),
 );
@@ -137,7 +138,8 @@ dassert( ( my $host         = $opt->get_host ),       "Host should be defined" )
 dassert( ( my $port         = $opt->get_port ),       "Port should be defined" );
 dassert( ( my $accept       = $opt->get_accept ),     "Accept number should be defined" );
 dassert( ( my $wakeup       = $opt->get_wakeup ),     "Wake up number should be defined" );
-dassert( ( my $timeout      = $opt->get_timeout ),    "Server shutdown timeout can not be empty" );
+dassert( ( my $timeout1     = $opt->get_timeout1 ),   "Server shutdown timeout can not be empty" );
+dassert( ( my $timeout2     = $opt->get_timeout2 ),   "Server shutdown timeout can not be empty" );
 passert( ( my $pidfile = $opt->get_pidfile ), "Pidfile given" );
 
 Log::Log4perl->init($configloger);
@@ -147,7 +149,8 @@ $log->info("Config server: $configserver");
 $log->info("Config logger: $configloger");
 $log->info("Host: $host");
 $log->info("Port: $port");
-$log->info("Timeout: $timeout");
+$log->info("Timeout1: $timeout1");
+$log->info("Timeout2: $timeout2");
 
 # Write server settings wor workers
 # this resource should be available for all workers
@@ -184,9 +187,9 @@ sub shutdown_if_calm {
 }
 
 Danga::Socket->SetLoopTimeout(3);
-my $killer = Gearman::Killer::Server->new($timeout, $timeout);
+my $killer = Gearman::Killer::Server->new( $timeout1, $timeout2 );
 Danga::Socket->SetPostLoopCallback( sub {
-	return !$killer->should_die($server->jobs, $server->clients);
+		return !$killer->should_die( $server->jobs, $server->clients );
 } );
 
 Danga::Socket->EventLoop();
