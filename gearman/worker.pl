@@ -8,7 +8,7 @@ use lib "$FindBin::Bin/lib";
 use JSON;
 use PDB::File;
 use PDB::Cluster;
-  
+
 use Gearman::Worker;
 use Storable qw( freeze thaw retrieve);
 use Storable qw( freeze );
@@ -26,8 +26,8 @@ use Gearman::Killer::Worker;
 my @specs = (
 	Param("--configfile")->default("$FindBin::Bin/../etc/server.conf"),
 	Param("--configlog")->default("$FindBin::Bin/../etc/logger.conf"),
-	Param("--timeout1")->default(80),    # timeout without server
-	Param("--timeout2")->default(30),    # timeout with server but without tasks
+	Param("--timeout1")->default( ( 5 * 60 ) ),    # Seconds before die before tasks
+	Param("--timeout2")->default(30),              # Seconds before die after tasks
 );
 
 # Parse and validate given parameters
@@ -47,13 +47,13 @@ $log->info("Config loger: $configloger");
 $log->info("Timeout without server: $timeout1");
 $log->info("Timeout without tasks: $timeout2");
 
-my $json    = JSON->new;
-my $started = time();
-my $worker  = Gearman::Worker->new;
+my $json   = JSON->new;
+my $worker = Gearman::Worker->new;
 $worker->job_servers( read_file($configserver) );
 
 my $pdbfile    = PDB::File->new($log);
 my $pdbcluster = PDB::Cluster->new( $log, $pdbfile );
+my $killer     = Gearman::Killer::Worker->new( $log, $timeout1, $timeout2 );
 
 # Define worker function to convert cluster
 # of pdb structures to binary files
@@ -67,8 +67,8 @@ $worker->register_function( "cluster_to_bin" => sub {
 		my $library = $pdbcluster->write_bins( $refs, $refc, $src, $tmp, $dst, $min, $all );
 
 		$log->debug( "Send response ", join( ', ', @$library ) ) if scalar($library);
-		
-		return $json->encode( $library );
+
+		return $json->encode($library);
 } );
 
 # Define worker function to convert
@@ -83,14 +83,11 @@ $worker->register_function( "bin_to_vec" => sub {
 		my $response = $pdbfile->write_vec( $code, $source, $dest_v1, $dest_v2, $class_v1, $class_v2 );
 
 		$log->debug( "Send response ", $response );
-		
+
 		return $response;
 } );
 
-my $killer = Gearman::Killer::Worker->new( $log, $timeout1, $timeout2 );
 $worker->work( 'stop_if' => sub {
 		my ( $is_idle, $last_job_time ) = @_;
-		
 		return $killer->should_die( $is_idle, $last_job_time );
 } );
-
