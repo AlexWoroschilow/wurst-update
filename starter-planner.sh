@@ -17,15 +17,18 @@ echo "Checking logger config..."
 check_file ${CONFIG_LOGGER};
 echo "Checking planner script..."
 check_file ${SCRIPT_PLANNER};
+echo "Checking worker script..."
+check_file ${SCRIPT_WORKER};
 
 # Write a xml file with status
 # for php status-rss stream 
 signal_handler () {
 
 	PLANNER_PID=$1;
-	SCRIPT_LOG_XML=$2;
-	SCRIPT_LOG_ALL=$3;
-	SCRIPT_STD_ERR=$4;
+	WORKER_PID=$2;
+	SCRIPT_LOG_XML=$3;
+	SCRIPT_LOG_ALL=$4;
+	SCRIPT_STD_ERR=$5;
 	
 	TIMESTAMP="$(date +'%s')";
 	SCRIPT_LOG_REMOTE_XML="${TIMESTAMP}.xml";
@@ -58,31 +61,41 @@ signal_handler () {
 
 	ssh ${DESTINATION_USER}@${DESTINATION_HOST} chmod -R 777 ${DESTINATION_FLENSBURG}
 	
-	kill ${PLANNER_PID}
+	kill ${PLANNER_PID} ${WORKER_PID};
 	exit;
 }
 
 
+WORKER_PID=0
 PLANNER_PID=0;
 # Catch sytem signals needs to write 
 # a xml files for rss status stream
-trap 'signal_handler ${PLANNER_PID} ${SCRIPT_LOG_XML} ${SCRIPT_LOG_ALL} ${SCRIPT_STD_ERR};' EXIT KILL HUP INT TERM
+trap 'signal_handler ${PLANNER_PID} ${WORKER_PID} ${SCRIPT_LOG_XML} ${SCRIPT_LOG_ALL} ${SCRIPT_STD_ERR};' EXIT KILL HUP INT TERM
 
 echo "Run planner: ${SCRIPT_PLANNER}";
 ${SCRIPT_PLANNER} --configlog=${CONFIG_LOGGER} --configfile=${CONFIG_SERVER} 1>>${SCRIPT_STD_OUT} 2>> ${SCRIPT_STD_ERR} &
 PLANNER_PID=$!;
+echo "Planner pid: ${PLANNER_PID}";
+
+# run worker here do do some 
+# job even if other workers
+# has not been started
+echo "Run worker: ${SCRIPT_WORKER}";
+${SCRIPT_WORKER} --configlog=${CONFIG_LOGGER} --configfile=${CONFIG_SERVER} 1>>${SCRIPT_STD_OUT} 2>> ${SCRIPT_STD_ERR} &
+WORKER_PID=$!;
+echo "Worker pid: ${WORKER_PID}";
+
 # Catch sytem signals needs to write 
 # a xml files for rss status stream
-trap 'signal_handler ${PLANNER_PID} ${SCRIPT_LOG_XML} ${SCRIPT_LOG_ALL} ${SCRIPT_STD_ERR};' EXIT KILL HUP INT TERM
-
+trap 'signal_handler ${PLANNER_PID} ${WORKER_PID} ${SCRIPT_LOG_XML} ${SCRIPT_LOG_ALL} ${SCRIPT_STD_ERR};' EXIT KILL HUP INT TERM
 
 # Start planner 
 # it is not possible to use a dependency in tasks
 # so i have to start a workers after planner started
 # it is something like a dependency
-STARTER_WORKER="qsub -S /bin/bash ${SCRIPT_STARTER_WORKER}"
-echo "Run: ${STARTER_WORKER}";
-${STARTER_WORKER} 1>>${SCRIPT_STD_OUT} 2>> ${SCRIPT_STD_ERR} &
+#STARTER_WORKER="qsub -S /bin/bash ${SCRIPT_STARTER_WORKER}"
+#echo "Run: ${STARTER_WORKER}";
+#${STARTER_WORKER} 1>>${SCRIPT_STD_OUT} 2>> ${SCRIPT_STD_ERR} &
 
 
 echo "Waiting for pid: ${PLANNER_PID}";

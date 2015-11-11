@@ -19,15 +19,27 @@ echo "Checking server config...";
 check_file ${CONFIG_SERVER};
 echo "Checking logger config...";
 check_file ${CONFIG_LOGGER};
+echo "Checking worker script..."
+check_file ${SCRIPT_WORKER};
 
 echo "Run: ${SCRIPT_SERVER}";
 ${SCRIPT_SERVER} --configlog=${CONFIG_LOGGER} --configfile=${CONFIG_SERVER} --timeout=${SERVER_TIMEOUT} 1>>${SCRIPT_STD_OUT} 2>> ${SCRIPT_STD_ERR} &
 SERVER_PID=$!;
 echo "Server pid: ${SERVER_PID}";
 
+sleep 3;
+
+# run worker here do do some 
+# job even if other workers
+# has not been started
+echo "Run worker: ${SCRIPT_WORKER}";
+${SCRIPT_WORKER} --configlog=${CONFIG_LOGGER} --configfile=${CONFIG_SERVER} 1>>${SCRIPT_STD_OUT} 2>> ${SCRIPT_STD_ERR} &
+WORKER_PID=$!;
+echo "worker pid: ${WORKER_PID}";
+
 # Kill server if this script
 # has been killed or die
-trap 'kill ${SERVER_PID};' EXIT KILL HUP INT TERM
+trap 'kill ${SERVER_PID} ${WORKER_PID};' EXIT KILL HUP INT TERM
 
 # Start planner 
 # it is not possible to use a dependency in tasks
