@@ -32,7 +32,7 @@ sleep 5;
 # job even if other workers
 # has not been started
 echo "Run worker: ${SCRIPT_WORKER}";
-${SCRIPT_WORKER} --configlog=${CONFIG_LOGGER} --configfile=${CONFIG_SERVER} --timeout1=${SERVER_TIMEOUT} --timeout2=${SERVER_TIMEOUT} 1>>${SCRIPT_STD_OUT} 2>> ${SCRIPT_STD_ERR} &
+${SCRIPT_WORKER} --configlog=${CONFIG_LOGGER} --configfile=${CONFIG_SERVER} 1>>${SCRIPT_STD_OUT} 2>> ${SCRIPT_STD_ERR} &
 WORKER_PID=$!;
 echo "worker pid: ${WORKER_PID}";
 

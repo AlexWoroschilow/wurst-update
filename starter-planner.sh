@@ -86,10 +86,8 @@ sleep 5;
 # run worker here do do some 
 # job even if other workers
 # has not been started
-WORKER_TIMEOUT1=120
-WORKER_TIMEOUT2=120
 echo "Run worker: ${SCRIPT_WORKER}";
-${SCRIPT_WORKER} --configlog=${CONFIG_LOGGER} --configfile=${CONFIG_SERVER}  --timeout1=${WORKER_TIMEOUT1} --timeout2=${WORKER_TIMEOUT2} 1>>${SCRIPT_STD_OUT} 2>> ${SCRIPT_STD_ERR} &
+${SCRIPT_WORKER} --configlog=${CONFIG_LOGGER} --configfile=${CONFIG_SERVER}  1>>${SCRIPT_STD_OUT} 2>> ${SCRIPT_STD_ERR} &
 WORKER_PID=$!;
 echo "Worker pid: ${WORKER_PID}";
 
