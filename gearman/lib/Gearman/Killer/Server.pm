@@ -3,15 +3,17 @@ package Gearman::Killer::Server;
 use strict;
 
 sub new {
-	my Gearman::Killer::Server $self = shift;
 
-	my ( $timeout1, $timeout2 ) = @_;
+	my ( $class, $timeout1, $timeout2 ) = @_;
 
+	my Gearman::Killer::Server $self = $class;
 	$self->{worked}  = 0;
 	$self->{started} = time;
 
 	$self->{timeout1} = $timeout1;
 	$self->{timeout2} = $timeout2;
+
+	return $self;
 }
 
 sub should_die ($ $) {
