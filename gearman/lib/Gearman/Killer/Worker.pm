@@ -7,10 +7,10 @@ sub new {
 	my Gearman::Killer::Worker $class = shift;
 
 	my $self = {
-		_started  => time,
+		_started  => time(),
 		_logger   => shift,
-		_timeout1 => shift,    # seconds to waiting for a new jobs
-		_timeout2 => shift,    # seconds to live after last job has been done
+		_timeout1 => shift,     # seconds to waiting for a new jobs
+		_timeout2 => shift,     # seconds to live after last job has been done
 	};
 
 	bless $self, $class;
@@ -21,10 +21,11 @@ sub should_die ($ $) {
 	my $self          = shift;
 	my $is_idle       = shift;
 	my $last_job_time = shift;
-	
+
 	$self->{_logger}->debug("Worker is idle") if $is_idle;
 
 	my $timeout    = $self->{_timeout1};
+	my $started    = $self->{started};
 	my $requestred = time();
 
 	# We have to use different timeouts
@@ -38,7 +39,7 @@ sub should_die ($ $) {
 		$timeout = $self->{_timeout2};
 	}
 
-	my $difference = $requestred - $self->{started};
+	my $difference = $requestred - $started;
 
 	$self->{_logger}->debug( "Current timeout: ", $timeout );
 
