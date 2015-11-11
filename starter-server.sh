@@ -27,13 +27,13 @@ ${SCRIPT_SERVER} --configlog=${CONFIG_LOGGER} --configfile=${CONFIG_SERVER} --ti
 SERVER_PID=$!;
 echo "Server pid: ${SERVER_PID}";
 
-sleep 3;
+sleep 5;
 
 # run worker here do do some 
 # job even if other workers
 # has not been started
 echo "Run worker: ${SCRIPT_WORKER}";
-${SCRIPT_WORKER} --configlog=${CONFIG_LOGGER} --configfile=${CONFIG_SERVER} 1>>${SCRIPT_STD_OUT} 2>> ${SCRIPT_STD_ERR} &
+${SCRIPT_WORKER} --configlog=${CONFIG_LOGGER} --configfile=${CONFIG_SERVER} --timeout1=${SERVER_TIMEOUT} --timeout2=${SERVER_TIMEOUT} 1>>${SCRIPT_STD_OUT} 2>> ${SCRIPT_STD_ERR} &
 WORKER_PID=$!;
 echo "worker pid: ${WORKER_PID}";
 

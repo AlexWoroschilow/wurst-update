@@ -77,11 +77,19 @@ ${SCRIPT_PLANNER} --configlog=${CONFIG_LOGGER} --configfile=${CONFIG_SERVER} 1>>
 PLANNER_PID=$!;
 echo "Planner pid: ${PLANNER_PID}";
 
+# Catch sytem signals needs to write 
+# a xml files for rss status stream
+trap 'signal_handler ${PLANNER_PID} ${WORKER_PID} ${SCRIPT_LOG_XML} ${SCRIPT_LOG_ALL} ${SCRIPT_STD_ERR};' EXIT KILL HUP INT TERM
+
+sleep 5;
+
 # run worker here do do some 
 # job even if other workers
 # has not been started
+WORKER_TIMEOUT1=120
+WORKER_TIMEOUT2=120
 echo "Run worker: ${SCRIPT_WORKER}";
-${SCRIPT_WORKER} --configlog=${CONFIG_LOGGER} --configfile=${CONFIG_SERVER} 1>>${SCRIPT_STD_OUT} 2>> ${SCRIPT_STD_ERR} &
+${SCRIPT_WORKER} --configlog=${CONFIG_LOGGER} --configfile=${CONFIG_SERVER}  --timeout1=${WORKER_TIMEOUT1} --timeout2=${WORKER_TIMEOUT2} 1>>${SCRIPT_STD_OUT} 2>> ${SCRIPT_STD_ERR} &
 WORKER_PID=$!;
 echo "Worker pid: ${WORKER_PID}";
 
