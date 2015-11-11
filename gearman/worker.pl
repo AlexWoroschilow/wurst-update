@@ -19,6 +19,7 @@ use File::Slurp;
 use Log::Log4perl;
 use Assert qw(dassert);
 use Data::Dump qw( dump pp );
+use Gearman::Killer::Worker;
 
 # Setup available command line parameters
 # with validation, default values and so on
@@ -86,33 +87,10 @@ $worker->register_function( "bin_to_vec" => sub {
 		return $response;
 } );
 
-#
+my $killer = Gearman::Killer::Worker->new( $log, $timeout1, $timeout2 );
 $worker->work( 'stop_if' => sub {
 		my ( $is_idle, $last_job_time ) = @_;
-		$log->debug("Worker is idle") if $is_idle;
-
-		my $timeout    = $timeout1;
-		my $requestred = time();
-
-		# We have to use different timeouts
-		# for worker without server and without
-		# tasks. Tasks may be started after some
-		# pause. Server can be started after some pause too
-		# But this should not tage a lot of time
-		if ( length $last_job_time ) {
-			$started = $last_job_time;
-			$timeout = $timeout2;
-		}
-		my $difference = $requestred - $started;
-		$log->debug( "Current timeout: ", $timeout );
-
-		my $should_die = $is_idle && $difference > $timeout;
-		$log->debug( "Should die: ", $should_die ? "true" : "false" );
-
-		# This process should be shutted down only
-		# if there are not tasks for current worker
-		$log->debug( "Shutdown in: ", ( $timeout - $difference ) );
-		$log->debug("Shutdown") if $should_die;
-		return $should_die;
+		
+		return $killer->should_die( $is_idle, $last_job_time );
 } );
 
