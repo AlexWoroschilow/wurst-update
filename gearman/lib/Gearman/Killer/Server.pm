@@ -4,37 +4,36 @@ use strict;
 
 sub new {
 
-	my ( $class, $timeout1, $timeout2 ) = @_;
+	my Gearman::Killer::Server $class = shift;
 
-	my Gearman::Killer::Server $self = $class;
-	$self->{worked}  = 0;
-	$self->{started} = time;
+	my $self = {
+		worked   => 0,
+		started  => time,
+		timeout1 => shift,    # seconds to waiting for a new jobs
+		timeout2 => shift,    # seconds to live after last job has been done
+	};
 
-	$self->{timeout1} = $timeout1;
-	$self->{timeout2} = $timeout2;
-
+	bless $self, $class;
 	return $self;
 }
 
 sub should_die ($ $) {
-	my Gearman::Killer::Server $self = shift;
+	my $self    = shift;
+	my $jobs    = shift;
+	my $clients = shift;
 
-	my ( $jobs, $clients ) = @_;
-
-	if ($jobs) {
-		$self->{worked} = 1;
-	}
+	$self->{worked} = 1 if $jobs;
 
 	my $current    = time;
 	my $difference = $current - $self->{started};
 	if ( !$self->{worked} ) {
-		return !( $self->{timeout1} < $difference );
+		return $difference > $self->{timeout1};
 	}
 
 	if ( !$jobs && !$clients ) {
-		return !( $self->{timeout2} < $difference );
+		return $difference > $self->{timeout2};
 	}
 	$self->{started} = time;
-	return 1;
+	return 0;
 }
 1
