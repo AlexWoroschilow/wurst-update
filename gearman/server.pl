@@ -108,6 +108,7 @@ use Danga::Socket 1.52;
 use Getopt::Lucid qw( :all );
 use Assert qw(dassert passert);
 use File qw(file_write_silent);
+use Gearman::Killer::Server;
 
 our $graceful_shutdown = 0;
 
@@ -182,17 +183,10 @@ sub shutdown_if_calm {
 	}
 }
 
-my $started = time;
 Danga::Socket->SetLoopTimeout(3);
+my $killer = Gearman::Killer::Server->new($timeout, $timeout);
 Danga::Socket->SetPostLoopCallback( sub {
-		if ( !$server->jobs && !$server->clients ) {
-			my $current    = time;
-			my $difference = $current - $started;
-			my $should_die = $timeout < $difference;
-			return !$should_die;
-		}
-		$started = time;
-		return 1;
+	return !$killer->should_die($server->jobs, $server->clients);
 } );
 
 Danga::Socket->EventLoop();
