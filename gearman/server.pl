@@ -187,7 +187,7 @@ sub shutdown_if_calm {
 }
 
 Danga::Socket->SetLoopTimeout(3);
-my $killer = Gearman::Killer::Server->new( $timeout1, $timeout2 );
+my $killer = Gearman::Killer::Server->new( $log, $timeout1, $timeout2 );
 Danga::Socket->SetPostLoopCallback( sub {
 		return !$killer->should_die( $server->jobs, $server->clients );
 } );

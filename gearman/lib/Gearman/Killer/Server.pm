@@ -7,10 +7,11 @@ sub new {
 	my Gearman::Killer::Server $class = shift;
 
 	my $self = {
-		worked   => 0,
-		started  => time,
-		timeout1 => shift,    # seconds to waiting for a new jobs
-		timeout2 => shift,    # seconds to live after last job has been done
+		_worked   => 0,
+		_started  => time,
+		_logger   => shift,
+		_timeout1 => shift,    # seconds to waiting for a new jobs
+		_timeout2 => shift,    # seconds to live after last job has been done
 	};
 
 	bless $self, $class;
@@ -22,18 +23,18 @@ sub should_die ($ $) {
 	my $jobs    = shift;
 	my $clients = shift;
 
-	$self->{worked} = 1 if $jobs;
+	$self->{_worked} = 1 if $jobs;
 
 	my $current    = time;
-	my $difference = $current - $self->{started};
-	if ( !$self->{worked} ) {
-		return $difference > $self->{timeout1};
+	my $difference = $current - $self->{_started};
+	if ( !$self->{_worked} ) {
+		return $difference > $self->{_timeout1};
 	}
 
 	if ( !$jobs && !$clients ) {
-		return $difference > $self->{timeout2};
+		return $difference > $self->{_timeout2};
 	}
-	$self->{started} = time;
+	$self->{_started} = time;
 	return 0;
 }
 1
