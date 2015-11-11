@@ -93,9 +93,9 @@ trap 'signal_handler ${PLANNER_PID} ${WORKER_PID} ${SCRIPT_LOG_XML} ${SCRIPT_LOG
 # it is not possible to use a dependency in tasks
 # so i have to start a workers after planner started
 # it is something like a dependency
-#STARTER_WORKER="qsub -S /bin/bash ${SCRIPT_STARTER_WORKER}"
-#echo "Run: ${STARTER_WORKER}";
-#${STARTER_WORKER} 1>>${SCRIPT_STD_OUT} 2>> ${SCRIPT_STD_ERR} &
+##STARTER_WORKER="qsub -S /bin/bash ${SCRIPT_STARTER_WORKER}"
+##echo "Run: ${STARTER_WORKER}";
+##${STARTER_WORKER} 1>>${SCRIPT_STD_OUT} 2>> ${SCRIPT_STD_ERR} &
 
 
 echo "Waiting for pid: ${PLANNER_PID}";
