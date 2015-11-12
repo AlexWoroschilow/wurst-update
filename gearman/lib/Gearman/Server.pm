@@ -30,23 +30,23 @@ use Gearman::Server::Job;
 use Socket qw(IPPROTO_TCP SOL_SOCKET SOCK_STREAM AF_UNIX SOCK_STREAM PF_UNSPEC);
 use Carp qw(croak);
 use Sys::Hostname ();
-use IO::Handle ();
+use IO::Handle    ();
 
 use fields (
-            'client_map',    # fd -> Client
-            'sleepers',      # func -> { "Client=HASH(0xdeadbeef)" => Client }
-            'sleepers_list', # func -> [ Client, ... ], ...
-            'job_queue',     # job_name -> [Job, Job*]  (key only exists if non-empty)
-            'job_of_handle', # handle -> Job
-            'max_queue',     # func -> configured max jobqueue size
-            'job_of_uniq',   # func -> uniq -> Job
-            'handle_ct',     # atomic counter
-            'handle_base',   # atomic counter
-            'listeners',     # arrayref of listener objects
-            'wakeup',        # number of workers to wake
-            'wakeup_delay',  # seconds to wait before waking more workers
-            'wakeup_timers', # func -> timer, timer to be canceled or adjusted when job grab/inject is called
-            );
+	'client_map',       # fd -> Client
+	'sleepers',         # func -> { "Client=HASH(0xdeadbeef)" => Client }
+	'sleepers_list',    # func -> [ Client, ... ], ...
+	'job_queue',        # job_name -> [Job, Job*]  (key only exists if non-empty)
+	'job_of_handle',    # handle -> Job
+	'max_queue',        # func -> configured max jobqueue size
+	'job_of_uniq',      # func -> uniq -> Job
+	'handle_ct',        # atomic counter
+	'handle_base',      # atomic counter
+	'listeners',        # arrayref of listener objects
+	'wakeup',           # number of workers to wake
+	'wakeup_delay',     # seconds to wait before waking more workers
+	'wakeup_timers',    # func -> timer, timer to be canceled or adjusted when job grab/inject is called
+);
 
 our $VERSION = "1.12";
 
@@ -71,51 +71,52 @@ Specify a port which you would like the Gearman::Server to listen on for TCP con
 =cut
 
 sub new {
-    my ($class, %opts) = @_;
-    my $self = ref $class ? $class : fields::new($class);
+	my ( $class, %opts ) = @_;
+	my $self = ref $class ? $class : fields::new($class);
 
-    $self->{client_map}    = {};
-    $self->{sleepers}      = {};
-    $self->{sleepers_list} = {};
-    $self->{job_queue}     = {};
-    $self->{job_of_handle} = {};
-    $self->{max_queue}     = {};
-    $self->{job_of_uniq}   = {};
-    $self->{listeners}     = [];
-    $self->{wakeup}        = 3;
-    $self->{wakeup_delay}  = .1;
-    $self->{wakeup_timers} = {};
+	$self->{client_map}    = {};
+	$self->{sleepers}      = {};
+	$self->{sleepers_list} = {};
+	$self->{job_queue}     = {};
+	$self->{job_of_handle} = {};
+	$self->{max_queue}     = {};
+	$self->{job_of_uniq}   = {};
+	$self->{listeners}     = [];
+	$self->{wakeup}        = 3;
+	$self->{wakeup_delay}  = .1;
+	$self->{wakeup_timers} = {};
 
-    $self->{handle_ct} = 0;
-    $self->{handle_base} = "H:" . Sys::Hostname::hostname() . ":";
+	$self->{handle_ct}   = 0;
+	$self->{handle_base} = "H:" . Sys::Hostname::hostname() . ":";
 
-    my $port = delete $opts{port};
+	my $port = delete $opts{port};
 
-    my $wakeup = delete $opts{wakeup};
+	my $wakeup = delete $opts{wakeup};
 
-    if (defined $wakeup) {
-        die "Invalid value passed in wakeup option"
-            if $wakeup < 0 && $wakeup != -1;
-        $self->{wakeup} = $wakeup;
-    }
+	if ( defined $wakeup ) {
+		die "Invalid value passed in wakeup option"
+		  if $wakeup < 0 && $wakeup != -1;
+		$self->{wakeup} = $wakeup;
+	}
 
-    my $wakeup_delay = delete $opts{wakeup_delay};
+	my $wakeup_delay = delete $opts{wakeup_delay};
 
-    if (defined $wakeup_delay) {
-        die "Invalid value passed in wakeup_delay option"
-            if $wakeup_delay < 0 && $wakeup_delay != -1;
-        $self->{wakeup_delay} = $wakeup_delay;
-    }
+	if ( defined $wakeup_delay ) {
+		die "Invalid value passed in wakeup_delay option"
+		  if $wakeup_delay < 0 && $wakeup_delay != -1;
+		$self->{wakeup_delay} = $wakeup_delay;
+	}
 
-    croak("Unknown options") if %opts;
-    $self->create_listening_sock($port);
+	croak("Unknown options") if %opts;
+	$self->create_listening_sock($port);
 
-    return $self;
+	return $self;
 }
 
 sub debug {
-    my ($self, $msg) = @_;
-#    warn "$msg\n";
+	my ( $self, $msg ) = @_;
+
+	#    warn "$msg\n";
 }
 
 =head2 create_listening_sock
@@ -127,68 +128,68 @@ Add a TCP port listener for incoming Gearman worker and client connections.
 =cut
 
 sub create_listening_sock {
-    my ($self, $portnum, %opts) = @_;
+	my ( $self, $portnum, %opts ) = @_;
 
-    my $accept_per_loop = delete $opts{accept_per_loop};
+	my $accept_per_loop = delete $opts{accept_per_loop};
 
-    warn "Extra options passed into create_listening_sock: " . join(', ', keys %opts) . "\n"
-        if keys %opts;
+	warn "Extra options passed into create_listening_sock: " . join( ', ', keys %opts ) . "\n"
+	  if keys %opts;
 
-    my $ssock = IO::Socket::INET->new(LocalPort => $portnum,
-                                      Type      => SOCK_STREAM,
-                                      Proto     => IPPROTO_TCP,
-                                      Blocking  => 0,
-                                      Reuse     => 1,
-                                      Listen    => 1024 )
-        or die "Error creating socket: $@\n";
+	my $ssock = IO::Socket::INET->new( LocalPort => $portnum,
+		Type     => SOCK_STREAM,
+		Proto    => IPPROTO_TCP,
+		Blocking => 0,
+		Reuse    => 1,
+		Listen   => 1024 )
+	  or die "Error creating socket: $@\n";
 
-    my $listeners = $self->{listeners};
-    push @$listeners, Gearman::Server::Listener->new($ssock, $self, accept_per_loop => $accept_per_loop);
+	my $listeners = $self->{listeners};
+	push @$listeners, Gearman::Server::Listener->new( $ssock, $self, accept_per_loop => $accept_per_loop );
 
-    return $ssock;
+	return $ssock;
 }
 
 sub new_client {
-    my ($self, $sock) = @_;
-    my $client = Gearman::Server::Client->new($sock, $self);
-    $client->watch_read(1);
-    $self->{client_map}{$client->{fd}} = $client;
+	my ( $self, $sock ) = @_;
+	my $client = Gearman::Server::Client->new( $sock, $self );
+	$client->watch_read(1);
+	$self->{client_map}{ $client->{fd} } = $client;
 }
 
 sub note_disconnected_client {
-    my ($self, $client) = @_;
-    delete $self->{client_map}{$client->{fd}};
+	my ( $self, $client ) = @_;
+	delete $self->{client_map}{ $client->{fd} };
 }
 
 sub clients {
-    my $self = shift;
-    return values %{ $self->{client_map} };
+	my $self = shift;
+	return values %{ $self->{client_map} };
 }
 
 # Returns a socket that is connected to the server, we can then use this
 # socket with a Gearman::Client::Async object to run clients and servers in the
 # same thread.
 sub to_inprocess_server {
-    my $self = shift;
+	my $self = shift;
 
-    my ($psock, $csock);
-    socketpair($csock, $psock, AF_UNIX, SOCK_STREAM, PF_UNSPEC)
-        or  die "socketpair: $!";
+	my ( $psock, $csock );
+	socketpair( $csock, $psock, AF_UNIX, SOCK_STREAM, PF_UNSPEC )
+	  or die "socketpair: $!";
 
-    $csock->autoflush(1);
-    $psock->autoflush(1);
+	$csock->autoflush(1);
+	$psock->autoflush(1);
 
-    IO::Handle::blocking($csock, 0);
-    IO::Handle::blocking($psock, 0);
+	IO::Handle::blocking( $csock, 0 );
+	IO::Handle::blocking( $psock, 0 );
 
-    my $client = Gearman::Server::Client->new($csock, $self);
+	my $client = Gearman::Server::Client->new( $csock, $self );
 
-    my ($package, $file, $line) = caller;
-    $client->{peer_ip}  = "[$package|$file|$line]";
-    $client->watch_read(1);
-    $self->{client_map}{$client->{fd}} = $client;
+	my ( $package, $file, $line ) = caller;
+	$client->{peer_ip} = "[$package|$file|$line]";
+	$client->watch_read(1);
+	$self->{client_map}{ $client->{fd} } = $client;
 
-    return $psock;
+	return $psock;
 }
 
 =head2 start_worker
@@ -202,239 +203,234 @@ Fork and start a worker process named by C<$prog> and returns the pid (or pid an
 =cut
 
 sub start_worker {
-    my ($self, $prog) = @_;
+	my ( $self, $prog ) = @_;
 
-    my ($psock, $csock);
-    socketpair($csock, $psock, AF_UNIX, SOCK_STREAM, PF_UNSPEC)
-        or  die "socketpair: $!";
+	my ( $psock, $csock );
+	socketpair( $csock, $psock, AF_UNIX, SOCK_STREAM, PF_UNSPEC )
+	  or die "socketpair: $!";
 
-    $csock->autoflush(1);
-    $psock->autoflush(1);
+	$csock->autoflush(1);
+	$psock->autoflush(1);
 
-    my $pid = fork;
-    unless (defined $pid) {
-        warn "fork failed: $!\n";
-        return undef;
-    }
+	my $pid = fork;
+	unless ( defined $pid ) {
+		warn "fork failed: $!\n";
+		return undef;
+	}
 
-    # child process
-    unless ($pid) {
-        local $ENV{'GEARMAN_WORKER_USE_STDIO'} = 1;
-        close(STDIN);
-        close(STDOUT);
-        open(STDIN, '<&', $psock) or die "Unable to dup socketpair to STDIN: $!";
-        open(STDOUT, '>&', $psock) or die "Unable to dup socketpair to STDOUT: $!";
-        if (UNIVERSAL::isa($prog, "CODE")) {
-            $prog->();
-            exit 0; # shouldn't get here.  subref should exec.
-        }
-        exec $prog;
-        die "Exec failed: $!";
-    }
+	# child process
+	unless ($pid) {
+		local $ENV{'GEARMAN_WORKER_USE_STDIO'} = 1;
+		close(STDIN);
+		close(STDOUT);
+		open( STDIN,  '<&', $psock ) or die "Unable to dup socketpair to STDIN: $!";
+		open( STDOUT, '>&', $psock ) or die "Unable to dup socketpair to STDOUT: $!";
+		if ( UNIVERSAL::isa( $prog, "CODE" ) ) {
+			$prog->();
+			exit 0;    # shouldn't get here.  subref should exec.
+		}
+		exec $prog;
+		die "Exec failed: $!";
+	}
 
-    close($psock);
+	close($psock);
 
-    IO::Handle::blocking($csock, 0);
-    my $sock = $csock;
+	IO::Handle::blocking( $csock, 0 );
+	my $sock = $csock;
 
-    my $client = Gearman::Server::Client->new($sock, $self);
+	my $client = Gearman::Server::Client->new( $sock, $self );
 
-    $client->{peer_ip}  = "[gearman_child]";
-    $client->watch_read(1);
-    $self->{client_map}{$client->{fd}} = $client;
-    return wantarray ? ($pid, $client) : $pid;
+	$client->{peer_ip} = "[gearman_child]";
+	$client->watch_read(1);
+	$self->{client_map}{ $client->{fd} } = $client;
+	return wantarray ? ( $pid, $client ) : $pid;
 }
 
 sub enqueue_job {
-    my ($self, $job, $highpri) = @_;
-    my $jq = ($self->{job_queue}{$job->{func}} ||= []);
+	my ( $self, $job, $highpri ) = @_;
+	my $jq = ( $self->{job_queue}{ $job->{func} } ||= [] );
 
-    if (defined (my $max_queue_size = $self->{max_queue}{$job->{func}})) {
-        $max_queue_size--; # Subtract one, because we're about to add one more below.
-        while (@$jq > $max_queue_size) {
-            my $delete_job = pop @$jq;
-            my $msg = Gearman::Util::pack_res_command("work_fail", $delete_job->handle);
-            $delete_job->relay_to_listeners($msg);
-            $delete_job->note_finished;
-        }
-    }
+	if ( defined( my $max_queue_size = $self->{max_queue}{ $job->{func} } ) ) {
+		$max_queue_size--;    # Subtract one, because we're about to add one more below.
+		while ( @$jq > $max_queue_size ) {
+			my $delete_job = pop @$jq;
+			my $msg = Gearman::Util::pack_res_command( "work_fail", $delete_job->handle );
+			$delete_job->relay_to_listeners($msg);
+			$delete_job->note_finished;
+		}
+	}
 
-    if ($highpri) {
-        unshift @$jq, $job;
-    } else {
-        push @$jq, $job;
-    }
+	if ($highpri) {
+		unshift @$jq, $job;
+	} else {
+		push @$jq, $job;
+	}
 
-    $self->{job_of_handle}{$job->{'handle'}} = $job;
+	$self->{job_of_handle}{ $job->{'handle'} } = $job;
 }
 
 sub wake_up_sleepers {
-    my ($self, $func) = @_;
+	my ( $self, $func ) = @_;
 
-    if (my $existing_timer = delete($self->{wakeup_timers}->{$func})) {
-        $existing_timer->cancel();
-    }
+	if ( my $existing_timer = delete( $self->{wakeup_timers}->{$func} ) ) {
+		$existing_timer->cancel();
+	}
 
-    return unless $self->_wake_up_some($func);
+	return unless $self->_wake_up_some($func);
 
-    my $delay = $self->{wakeup_delay};
+	my $delay = $self->{wakeup_delay};
 
-    # -1 means don't setup a timer. 0 actually means go as fast as we can, cooperatively.
-    return if $delay == -1;
+	# -1 means don't setup a timer. 0 actually means go as fast as we can, cooperatively.
+	return if $delay == -1;
 
-    # If we're only going to wakeup 0 workers anyways, don't set up a timer.
-    return if $self->{wakeup} == 0;
+	# If we're only going to wakeup 0 workers anyways, don't set up a timer.
+	return if $self->{wakeup} == 0;
 
-    my $timer = Danga::Socket->AddTimer($delay, sub {
-        # Be sure to not wake up more sleepers if we have no jobs in the queue.
-        # I know the object definition above says I can trust the func element to determine
-        # if there are items in the list, but I'm just gonna be safe, rather than sorry.
-        return unless @{$self->{job_queue}{$func} || []};
-        $self->wake_up_sleepers($func)
-    });
-    $self->{wakeup_timers}->{$func} = $timer;
+	my $timer = Danga::Socket->AddTimer( $delay, sub {
+
+			# Be sure to not wake up more sleepers if we have no jobs in the queue.
+			# I know the object definition above says I can trust the func element to determine
+			# if there are items in the list, but I'm just gonna be safe, rather than sorry.
+			return unless @{ $self->{job_queue}{$func} || [] };
+			$self->wake_up_sleepers($func)
+	} );
+	$self->{wakeup_timers}->{$func} = $timer;
 }
 
 # Returns true when there are still more workers to wake up
 # False if there are no sleepers
 sub _wake_up_some {
-    my ($self, $func) = @_;
-    my $sleepmap = $self->{sleepers}{$func} or return;
-    my $sleeporder = $self->{sleepers_list}{$func} or return;
+	my ( $self, $func ) = @_;
+	my $sleepers      = $self->{sleepers}{$func}      or return;
+	my $sleepers_list = $self->{sleepers_list}{$func} or return;
 
-    # TODO SYNC UP STATE HERE IN CASE TWO LISTS END UP OUT OF SYNC
+	# TODO SYNC UP STATE HERE IN CASE TWO LISTS END UP OUT OF SYNC
+	my $max = $self->{wakeup};
 
-    my $max = $self->{wakeup};
+	while (@$sleepers_list) {
+		my Gearman::Server::Client $c = shift @$sleepers_list;
+		next if $c->{closed} || !$c->{sleeping};
+		if ( $max-- <= 0 ) {
+			unshift( @$sleepers_list, $c );
+			return 1;
+		}
+		delete( $sleepers->{"$c"} );
+		$c->res_packet("noop");
+		$c->{sleeping} = 0;
+	}
 
-    while (@$sleeporder) {
-        my Gearman::Server::Client $c = shift @$sleeporder;
-        next if $c->{closed} || ! $c->{sleeping};
-        if ($max-- <= 0) {
-            unshift @$sleeporder, $c;
-            return 1;
-        }
-        delete $sleepmap->{"$c"};
-        $c->res_packet("noop");
-        $c->{sleeping} = 0;
-    }
-
-    delete $self->{sleepers}{$func};
-    delete $self->{sleepers_list}{$func};
-    return;
+	delete( $self->{sleepers}{$func} );
+	delete( $self->{sleepers_list}{$func} );
+	return;
 }
 
 sub on_client_sleep {
-    my $self = shift;
-    my Gearman::Server::Client $cl = shift;
+	my Gearman::Server $self      = shift;
+	my Gearman::Server::Client $c = shift;
 
-    foreach my $cd (@{$cl->{can_do_list}}) {
-        # immediately wake the sleeper up if there are things to be done
-        if ($self->{job_queue}{$cd}) {
-            $cl->res_packet("noop");
-            $cl->{sleeping} = 0;
-            return;
-        }
+	foreach my $func ( @{ $c->{can_do_list} } ) {
 
-        my $sleepmap = ($self->{sleepers}{$cd} ||= {});
-        my $count = $sleepmap->{"$cl"}++;
+		# immediately wake the sleeper up if there are things to be done
+		if ( $self->{job_queue}{$func} ) {
+			$c->res_packet("noop");
+			$c->{sleeping} = 0;
+			return;
+		}
 
-        next if $count >= 2;
+		my $sleepers = ( $self->{sleepers}{$func} ||= {} );
+		my $count = $sleepers->{"$c"}++;
 
-        my $sleeporder = ($self->{sleepers_list}{$cd} ||= []);
+		# The idea here is to keep workers at the head of the list if they are doing work, hopefully
+		# this will allow extra workers that aren't needed to actually go 'idle' safely.
+		my $sleepers_list = ( $self->{sleepers_list}{$func} ||= [] );
 
-        # The idea here is to keep workers at the head of the list if they are doing work, hopefully
-        # this will allow extra workers that aren't needed to actually go 'idle' safely.
-        my $jobs_done = $cl->{jobs_done_since_sleep};
+		if ( $c->{jobs_done_since_sleep} ) {
+			unshift( @$sleepers_list, $c );
+		} else {
+			push( @$sleepers_list, $c );
+		}
 
-        if ($jobs_done) {
-            unshift @$sleeporder, $cl;
-        } else {
-            push @$sleeporder, $cl;
-        }
-
-        $cl->{jobs_done_since_sleep} = 0;
-
-    }
+		$c->{jobs_done_since_sleep} = 0;
+	}
 }
 
 sub jobs_outstanding {
-    my Gearman::Server $self = shift;
-    return scalar keys %{ $self->{job_queue} };
+	my Gearman::Server $self = shift;
+	return scalar keys %{ $self->{job_queue} };
 }
 
 sub jobs {
-    my Gearman::Server $self = shift;
-    return values %{ $self->{job_of_handle} };
+	my Gearman::Server $self = shift;
+	return values %{ $self->{job_of_handle} };
 }
 
 sub job_by_handle {
-    my ($self, $handle) = @_;
-    return $self->{job_of_handle}{$handle};
+	my ( $self, $handle ) = @_;
+	return $self->{job_of_handle}{$handle};
 }
 
 sub note_job_finished {
-    my Gearman::Server $self = shift;
-    my Gearman::Server::Job $job = shift;
+	my Gearman::Server $self     = shift;
+	my Gearman::Server::Job $job = shift;
 
-    if (my Gearman::Server::Client $worker = $job->worker) {
-        $worker->{jobs_done_since_sleep}++;
-    }
+	if ( my Gearman::Server::Client $worker = $job->worker ) {
+		$worker->{jobs_done_since_sleep}++;
+	}
 
-    if (length($job->{uniq})) {
-        delete $self->{job_of_uniq}{$job->{func}}{$job->{uniq}};
-    }
-    delete $self->{job_of_handle}{$job->{handle}};
+	if ( length( $job->{uniq} ) ) {
+		delete $self->{job_of_uniq}{ $job->{func} }{ $job->{uniq} };
+	}
+	delete $self->{job_of_handle}{ $job->{handle} };
 }
 
 # <0/undef/"" to reset.  else integer max depth.
 sub set_max_queue {
-    my ($self, $func, $max) = @_;
-    if (defined $max && length $max && $max >= 0) {
-        $self->{max_queue}{$func} = int($max);
-    } else {
-        delete $self->{max_queue}{$func};
-    }
+	my ( $self, $func, $max ) = @_;
+	if ( defined $max && length $max && $max >= 0 ) {
+		$self->{max_queue}{$func} = int($max);
+	} else {
+		delete $self->{max_queue}{$func};
+	}
 }
 
 sub new_job_handle {
-    my $self = shift;
-    return $self->{handle_base} . (++$self->{handle_ct});
+	my $self = shift;
+	return $self->{handle_base} . ( ++$self->{handle_ct} );
 }
 
 sub job_of_unique {
-    my ($self, $func, $uniq) = @_;
-    return undef unless $self->{job_of_uniq}{$func};
-    return $self->{job_of_uniq}{$func}{$uniq};
+	my ( $self, $func, $uniq ) = @_;
+	return undef unless $self->{job_of_uniq}{$func};
+	return $self->{job_of_uniq}{$func}{$uniq};
 }
 
 sub set_unique_job {
-    my ($self, $func, $uniq, $job) = @_;
-    $self->{job_of_uniq}{$func} ||= {};
-    $self->{job_of_uniq}{$func}{$uniq} = $job;
+	my ( $self, $func, $uniq, $job ) = @_;
+	$self->{job_of_uniq}{$func} ||= {};
+	$self->{job_of_uniq}{$func}{$uniq} = $job;
 }
 
 sub grab_job {
-    my ($self, $func) = @_;
-    return undef unless $self->{job_queue}{$func};
+	my ( $self, $func ) = @_;
+	return undef unless $self->{job_queue}{$func};
 
-    my $empty = sub {
-        delete $self->{job_queue}{$func};
-        return undef;
-    };
+	my $empty = sub {
+		delete $self->{job_queue}{$func};
+		return undef;
+	};
 
-    my Gearman::Server::Job $job;
-    while (1) {
-        $job = shift @{$self->{job_queue}{$func}};
-        return $empty->() unless $job;
-        return $job unless $job->require_listener;
+	my Gearman::Server::Job $job;
+	while (1) {
+		$job = shift @{ $self->{job_queue}{$func} };
+		return $empty->() unless $job;
+		return $job unless $job->require_listener;
 
-        foreach my Gearman::Server::Client $c (@{$job->{listeners}}) {
-            return $job if $c && ! $c->{closed};
-        }
-        $job->note_finished(0);
-    }
+		foreach my Gearman::Server::Client $c ( @{ $job->{listeners} } ) {
+			return $job if $c && !$c->{closed};
+		}
+		$job->note_finished(0);
+	}
 }
-
 
 1;
 __END__
