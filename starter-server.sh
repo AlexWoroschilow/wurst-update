@@ -76,7 +76,7 @@ SERVER_PID=0;
 # and write current actual config for planner
 # with library, source, clusters and so on
 echo "Run: ${SCRIPT_CONFIGURATOR}";
-${SCRIPT_CONFIGURATOR} --config=${CONFIG_UPDATER} 1>>${SCRIPT_STD_OUT} 2>> ${SCRIPT_STD_ERR} &
+${SCRIPT_CONFIGURATOR} --config=${CONFIG_UPDATER} 1>>${SCRIPT_STD_OUT} 2>> ${SCRIPT_STD_ERR}
 CONFIGURATOR_PID=$!;
 echo "Configurator pid: ${CONFIGURATOR_PID}";
 
