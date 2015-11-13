@@ -86,8 +86,6 @@ ${SCRIPT_SERVER} --config=${CONFIG_UPDATER} --logger=${CONFIG_LOGGER} 1>>${SCRIP
 SERVER_PID=$!;
 echo "Server pid: ${SERVER_PID}";
 
-# run worker here do do some  job even if 
-# other workers has not been started
 echo "Run worker: ${SCRIPT_WORKER}";
 ${SCRIPT_WORKER} --config=${CONFIG_UPDATER} --logger=${CONFIG_LOGGER} 1>>${SCRIPT_STD_OUT} 2>> ${SCRIPT_STD_ERR} &
 WORKER_PID=$!;
@@ -103,6 +101,14 @@ echo "Planner pid: ${PLANNER_PID}";
 # Catch sytem signals needs to write 
 # a xml files for rss status stream
 trap 'signal_handler ${SERVER_PID} ${PLANNER_PID} ${WORKER_PID} ${SCRIPT_LOG_XML} ${SCRIPT_LOG_ALL} ${SCRIPT_STD_ERR};' EXIT KILL HUP INT TERM
+
+
+# Start some extra workers in network 
+# to do help current process do work faster
+STARTER_WORKER="qsub -S /bin/bash ${SCRIPT_STARTER_WORKER}"
+echo "Run: ${STARTER_WORKER}";
+${STARTER_WORKER} 1>>${SCRIPT_STD_OUT} 2>> ${SCRIPT_STD_ERR} &
+
 
 wait ${PLANNER_PID};
 exit;
