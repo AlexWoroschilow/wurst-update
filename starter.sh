@@ -94,7 +94,7 @@ WORKER_PID=$!;
 echo "worker pid: ${WORKER_PID}";
 
 echo "Run planner: ${SCRIPT_PLANNER}";
-${SCRIPT_PLANNER} --configlog=${CONFIG_LOGGER} --configfile=${CONFIG_SERVER} 1>>${SCRIPT_STD_OUT} 2>> ${SCRIPT_STD_ERR} &
+${SCRIPT_PLANNER} --config=${CONFIG_UPDATER} --logger=${CONFIG_LOGGER} 1>>${SCRIPT_STD_OUT} 2>> ${SCRIPT_STD_ERR} &
 PLANNER_PID=$!;
 echo "Planner pid: ${PLANNER_PID}";
 
