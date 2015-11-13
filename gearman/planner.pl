@@ -16,11 +16,11 @@ use List::MoreUtils qw(zip);
 use PDB::File;
 use Config::Simple;
 
-#use lib "/home/other/wurst/salamiServer/v02";
-#use Salamisrvini;
-#use lib $LIB_LIB;     #initialize in local Salamisrvini.pm;
-#use lib $LIB_ARCH;    #initialize in local Salamisrvini.pm;
-#use vars qw ( $INPUT_CLST_LIST $OUTPUT_BIN_DIR $PDB_TOP_DIR $OUTPUT_LIB_LIST);
+use lib "/home/other/wurst/salamiServer/v02";
+use Salamisrvini;
+use lib $LIB_LIB;     #initialize in local Salamisrvini.pm;
+use lib $LIB_ARCH;    #initialize in local Salamisrvini.pm;
+use vars qw ( $INPUT_CLST_LIST $OUTPUT_BIN_DIR $PDB_TOP_DIR $OUTPUT_LIB_LIST);
 
 my @specs = (
 	Param("--config")->default("$FindBin::Bin/../etc/updater.conf"),
