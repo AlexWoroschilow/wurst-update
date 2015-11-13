@@ -78,6 +78,10 @@ my $pdbfile = PDB::File->new($log);
 $log->info("Read clusters and convert pdb to binary files");
 $pdbfile->cluster_each( $cluster, my $first, my $last, sub {
 		my ( $acq, $chain ) = @_;
+		
+		if(!(defined $acq)) {
+			return;
+		}
 
 		$log->debug( "Start processing clusters to binary ", join( ', ', @$acq ) );
 
