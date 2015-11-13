@@ -139,6 +139,7 @@ $pdbfile->list_each( $output_list, sub {
 				$class_vec2      # class file for vector structures, version 2
 		] );
 
+		$log->info("$code;bin_to_vec;failed");
 		$tasks->add_task( "bin_to_vec" => $options, {
 
 				on_fail => sub {
@@ -146,11 +147,12 @@ $pdbfile->list_each( $output_list, sub {
 					# This is totally wrong situation
 					# write a report to std error about it
 					# for more details see logs from worker
-					$log->error( "Library record processing failed ", $code );
+					$log->info("$code;bin_to_vec;failed");
+					$log->error("[$code] bin_to_vec failed");
 				},
 				on_complete => sub {
-					$log->debug( "Library record processing complete ", $code );
-					$log->debug( "Worker response received ",           ${ $_[0] } );
+					$log->info("$code;bin_to_vec;done");
+					$log->debug( "Worker response received ", ${ $_[0] } );
 				},
 		} );
 } );
