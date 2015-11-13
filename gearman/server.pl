@@ -39,12 +39,16 @@ my $gracefully = $cfg->param("server.gracefully");
 my $timeout1   = $cfg->param("server.timeout_before_jobs");
 my $timeout2   = $cfg->param("server.timeout_after_jobs");
 
-$cfg->param("worker.host", hostname);
-$cfg->param("worker.port", $port);
-$cfg->param("planner.host", hostname);
-$cfg->param("planner.port", $port);
-$cfg->write($opt->get_config);
-  
+# Update config for planner and worker
+# this tasks can be runned in network on
+# different hosts, so we have to upate host
+# info for planner and worker
+$cfg->param( "worker.host",  hostname );
+$cfg->param( "worker.port",  $port );
+$cfg->param( "planner.host", hostname );
+$cfg->param( "planner.port", $port );
+$cfg->write( $opt->get_config );
+
 Log::Log4perl->init( $opt->get_logger );
 my $log = Log::Log4perl->get_logger("server");
 
