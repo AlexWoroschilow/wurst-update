@@ -64,8 +64,6 @@ sub new {
 	$self->{options}               = {};
 	$self->{jobs_done_since_sleep} = 0;
 
-	$self->{server}->shutdown_graceful($self);
-
 	return $self;
 }
 
