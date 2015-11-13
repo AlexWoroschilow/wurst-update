@@ -39,21 +39,21 @@ my $output_list = $cfg->param("planner.output_list");
 
 #
 Log::Log4perl->init( $opt->get_logger );
-my $log = Log::Log4perl->get_logger("planner");
-my $sts = Log::Log4perl->get_logger("statistic");
+my $logger    = Log::Log4perl->get_logger("planner");
+my $statistic = Log::Log4perl->get_logger("statistic");
 
-$log->info( "Config: ",        $opt->get_config );
-$log->info( "Logger: ",        $opt->get_logger );
-$log->info( "Cluster: ",       $cluster );
-$log->info( "Library: ",       $library );
-$log->info( "Source: ",        $source );
-$log->info( "Temp: ",          $temp );
-$log->info( "Output bin: ",    $output_bin );
-$log->info( "Output vec1: ",   $output_vec1 );
-$log->info( "Output vec2: ",   $output_vec2 );
-$log->info( "Class vec1: ",    $class_vec1 );
-$log->info( "Class vec2: ",    $class_vec2 );
-$log->info( "Pdb list file: ", $output_list );
+$logger->info( "Config: ",        $opt->get_config );
+$logger->info( "Logger: ",        $opt->get_logger );
+$logger->info( "Cluster: ",       $cluster );
+$logger->info( "Library: ",       $library );
+$logger->info( "Source: ",        $source );
+$logger->info( "Temp: ",          $temp );
+$logger->info( "Output bin: ",    $output_bin );
+$logger->info( "Output vec1: ",   $output_vec1 );
+$logger->info( "Output vec2: ",   $output_vec2 );
+$logger->info( "Class vec1: ",    $class_vec1 );
+$logger->info( "Class vec2: ",    $class_vec2 );
+$logger->info( "Pdb list file: ", $output_list );
 
 my $client = Gearman::Client->new;
 $client->job_servers("$host:$port");
@@ -62,15 +62,15 @@ my $json  = JSON->new;
 
 my $library_out = [];
 
-my $pdbfile = PDB::File->new($log);
+my $pdbfile = PDB::File->new($logger);
 
 # Read cluster from file and convert
 # each pdb file to binary file
-$log->info("Read clusters and convert pdb to binary files");
+$logger->info("Read clusters and convert pdb to binary files");
 $pdbfile->cluster_each( $cluster, my $first, my $last, sub {
 		my ( $acq, $chain ) = @_;
 
-		$log->debug( "Start processing clusters to binary ", join( ', ', @$acq ) );
+		$logger->debug( "Start processing clusters to binary ", join( ', ', @$acq ) );
 
 		# This parameters should be pass through
 		# a network, it may be http or something else
@@ -86,31 +86,35 @@ $pdbfile->cluster_each( $cluster, my $first, my $last, sub {
 				1               # Should calculate all binary files for a cluster
 		] );
 
+		for ( my $i = 0 ; $i < @$acq ; $i++ ) {
+			$statistic->info( 'pdb_to_bin;started;', $$acq[$i] );
+		}
 
-		$sts->info('cluster_to_bin;started;', , join( ', ', @$acq ));
-		$log->debug( "Prepare gearman task settings ", $options );
+		$logger->debug( "Prepare gearman task settings ", $options );
 		$tasks->add_task( "cluster_to_bin" => $options, {
 				on_fail => sub {
 
 					# This is totally wrong situation
 					# write a report to std error about it
 					# for more details see logs from worker
-					$log->error( "cluster_to_bin done failed ", join( ', ', @$acq ) );
-					$sts->info('cluster_to_bin;failed;', , join( ', ', @$acq ));
+					$logger->error( "cluster_to_bin done failed ", join( ', ', @$acq ) );
+					for ( my $i = 0 ; $i < @$acq ; $i++ ) {
+						$statistic->info( 'pdb_to_bin;failed;', $$acq[$i] );
+					}
+
 				},
 				on_complete => sub {
 
 					my $response = $json->decode( ${ $_[0] } );
-					$sts->info('cluster_to_bin;finished;', , join( ', ', @$acq ));
-					$log->debug( "cluster_to_bin done ", join( ', ', @$acq ) );
-					$log->debug( "Worker response received ", ${ $_[0] } );
+					$logger->debug( "cluster_to_bin done ", join( ', ', @$acq ) );
+					$logger->debug( "Worker response received ", ${ $_[0] } );
 
 					# Build a library with proteins
 					# to make a dump, with correct
 					# structures only
-
 					if ( scalar(@$response) ) {
 						for ( my $i = 0 ; $i < @$response ; $i++ ) {
+							$statistic->info( 'pdb_to_bin;finished;', $$response[$i] );
 							push( $library_out, $$response[$i] );
 						}
 					}
@@ -119,15 +123,15 @@ $pdbfile->cluster_each( $cluster, my $first, my $last, sub {
 } );
 
 $tasks->wait;
-$log->info("Done with clusters");
+$logger->info("Done with clusters");
 
-$log->info( "Write list file ", $output_list );
+$logger->info( "Write list file ", $output_list );
 write_file( $output_list, join( "\n", @$library_out ) );
 
 # Read file with a list of protein structures
 # filtered by first step, then convert all
 # this structures to vector files
-$log->info("Read list with filtered structures and convert binary files to vectors");
+$logger->info("Read list with filtered structures and convert binary files to vectors");
 $pdbfile->list_each( $output_list, sub {
 		my ($code) = @_;
 
@@ -151,14 +155,14 @@ $pdbfile->list_each( $output_list, sub {
 					# This is totally wrong situation
 					# write a report to std error about it
 					# for more details see logs from worker
-					$log->error( "bin_to_vec failed ", $code );
+					$logger->error( "bin_to_vec failed ", $code );
 				},
 				on_complete => sub {
-					$log->debug( "bin_to_vec done ", $code );
-					$log->debug( "Worker response received ",           ${ $_[0] } );
+					$logger->debug( "bin_to_vec done ",          $code );
+					$logger->debug( "Worker response received ", ${ $_[0] } );
 				},
 		} );
 } );
 
 $tasks->wait;
-$log->info("Done with filtered structures");
+$logger->info("Done with filtered structures");
