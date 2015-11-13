@@ -9,8 +9,8 @@ sub new {
 	my $self = {
 		_started  => time(),
 		_logger   => shift,
-		_timeout1 => shift,     # seconds to waiting for a new jobs
-		_timeout2 => shift,     # seconds to live after last job has been done
+		_timeout1 => shift,    # seconds to waiting for a new jobs
+		_timeout2 => shift,    # seconds to live after last job has been done
 	};
 
 	bless $self, $class;
@@ -39,6 +39,10 @@ sub should_die ($ $) {
 		$timeout = $self->{_timeout2};
 	}
 
+	# if current timeout is empty
+	# diable worker shutdown
+	return 0 if !$timeout;
+
 	my $difference = $requestred - $started;
 
 	$self->{_logger}->debug( "Current timeout: ", $timeout );
@@ -52,7 +56,5 @@ sub should_die ($ $) {
 	$self->{_logger}->debug( "Shutdown in: ", ( $timeout - $difference ) );
 	$self->{_logger}->debug("Shutdown") if $should_die;
 	return $should_die;
-
-	return 0;
 }
 1

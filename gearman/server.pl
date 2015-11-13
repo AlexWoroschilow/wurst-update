@@ -87,7 +87,6 @@ L<Gearman::Client::Async>
 
 =cut
 
-package Gearmand;
 use strict;
 use warnings;
 
@@ -109,8 +108,6 @@ use Getopt::Lucid qw( :all );
 use Assert qw(dassert passert);
 use File qw(file_write_silent);
 use Gearman::Killer::Server;
-
-our $graceful_shutdown = 0;
 
 # Setup available command line parameters
 # with validation, default values and so on
@@ -162,29 +159,12 @@ file_write_silent( $opt->get_pidfile, "$$\n" );
 $SIG{'PIPE'} = "IGNORE";
 
 my $server = Gearman::Server->new(
-	'wakeup'       => int( $opt->get_wakeup ),
-	'wakeup_delay' => int( $opt->get_wakeup_delay ),
+	'wakeup'            => int( $opt->get_wakeup ),
+	'wakeup_delay'      => int( $opt->get_wakeup_delay ),
+	'graceful_shutdown' => 0
 );
 
 my $ssock = $server->create_listening_sock( int($port), 'accept_per_loop' => int($accept) );
-
-sub shutdown_graceful {
-	if ($graceful_shutdown) {
-		return;
-	}
-
-	my $ofds = Danga::Socket->OtherFds;
-	delete $ofds->{ fileno($ssock) };
-	$ssock->close;
-	$graceful_shutdown = 1;
-	shutdown_if_calm();
-}
-
-sub shutdown_if_calm {
-	if ( !$server->jobs_outstanding ) {
-		exit 0;
-	}
-}
 
 Danga::Socket->SetLoopTimeout(3);
 my $killer = Gearman::Killer::Server->new( $log, $timeout1, $timeout2 );
