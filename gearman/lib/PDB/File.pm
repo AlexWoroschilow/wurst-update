@@ -15,8 +15,6 @@ use lib $LIB_ARCH;    #initialize in local Salamisrvini.pm;
 
 use Wurst;
 
-#use vars qw ($CLASSFILE, $CA_CLASSFILE, $PVEC_STRCT_DIR, $PVEC_CA_DIR);
-
 sub new
 {
 	my $class = shift;
@@ -118,71 +116,79 @@ sub write_bin ($) {
 	my $tmp   = $options->{tmp};
 	my $src   = $options->{src};
 
+	my $result = 1;
+
 	if ( !length($code) ) {
 		$self->{_logger}->error("[$code] Protein code can not be empty");
-		return 0;
+		$result = 0;
 	}
 
 	if ( !length($src) ) {
 		$self->{_logger}->error("[$code] Source folder can not be empty");
-		return 0;
+		$result = 0;
 	}
 
 	if ( !length($tmp) ) {
 		$self->{_logger}->error("[$code] Temporary folder can not be empty");
-		return 0;
+		$result = 0;
 	}
 
 	if ( !length($dst) ) {
 		$self->{_logger}->error("[$code] Destination folder can not be empty");
-		return 0;
+		$result = 0;
 	}
 
-	my $file = "$dst/$code$chain.bin";
+	return 0 unless $result;
 
-	if ( ( -f $file ) ) {
+	my $file = "$dst/$code$chain.bin";
+	# binary file already exists we should 
+	# there are no reasone to rebuild this file
+	if ( $result && ( -f $file ) ) {
 		$self->{_logger}->debug("[$code] Binary file already exists");
 		return 1;
 	}
 
-	my $path = $self->get_path( $code, $src, $tmp );
-	if ( !$path ) {
+	my $path;
+	# there are no sense to do something else
+	# if no pdb file was found, just break up
+	if ( $result && !( $path = $self->get_path( $code, $src, $tmp ) ) ) {
 		$self->{_logger}->warn("[$code] Pdb file not found in: $src");
 		return 0;
 	}
 
-	my $read = pdb_read( $path, $code, $chain );
-	if ( !$read ) {
+	my $read;
+	if ( $result && !( $read = pdb_read( $path, $code, $chain ) ) ) {
 		$self->{_logger}->warn("[$code] Can not read pdb coordinates");
-		return 0;
+		$result = 0;
 	}
 
-	my $c_size = coord_size($read);
-	if ( $c_size < $min ) {
+	my $c_size;
+	if ( $result && ( $c_size = coord_size($read) ) && ( $c_size < $min ) ) {
 		$self->{_logger}->warn("[$code] To small");
-		return 0;
+		$result = 0;
 	}
 
-	if ( !( seq_size( coord_get_seq($read) ) == $c_size ) ) {
+	if ( $result && !( seq_size( coord_get_seq($read) ) == $c_size ) ) {
 		$self->{_logger}->warn("[$code] Sizes are different");
-		return 0;
+		$result = 0;
 	}
 
-	if ( !$self->check_sequence($read) ) {
+	if ( $result && !$self->check_sequence($read) ) {
 		$self->{_logger}->warn("[$code] Coordinates check failure");
-		return 0;
+		$result = 0;
 	}
 
-	if ( !coord_2_bin( $read, $file ) ) {
+	if ( $result && !coord_2_bin( $read, $file ) ) {
 		$self->{_logger}->warn("[$code] Can not write bin file: $file");
-		return 0;
+		$result = 0;
 	}
 
 	if ( !unlink($path) ) {
 		$self->{_logger}->warn("[$code] Deleting $path failed");
-		return 0;
+		return $result;
 	}
-	return 1;
+
+	return $result;
 }
 
 # ----------------------- get_pdb_path ------------------------------
