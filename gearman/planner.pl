@@ -33,19 +33,30 @@ $opt->validate( { 'requires' => [] } );
 
 my $cfg = new Config::Simple( $opt->get_config );
 
+$cfg->param( "planner.library",     $OUTPUT_LIB_LIST );
+$cfg->param( "planner.cluster",     "$FindBin::Bin/../clusters90.txt" );
+$cfg->param( "planner.source",      $PDB_TOP_DIR );
+$cfg->param( "planner.temp",        "$FindBin::Bin/../tmp" );
+$cfg->param( "planner.output_bin",  "$FindBin::Bin/../bin" );
+$cfg->param( "planner.output_vec1", "$FindBin::Bin/../vec1" );
+$cfg->param( "planner.output_vec2", "$FindBin::Bin/../vec2" );
+$cfg->param( "planner.class_vec1",  $CLASSFILE );
+$cfg->param( "planner.class_vec2",  $CA_CLASSFILE );
+$cfg->param( "planner.output_list", "$FindBin::Bin/../pdb_all.list" );
+$cfg->write( $opt->get_config );
+
 my $port        = $cfg->param("planner.port");
 my $host        = $cfg->param("planner.host");
-my $library     = $cfg->param( "planner.library", $OUTPUT_LIB_LIST );
-my $cluster     = $cfg->param( "planner.cluster", "$FindBin::Bin/../clusters90.txt" );
-my $source      = $cfg->param( "planner.source", $PDB_TOP_DIR );
-my $temp        = $cfg->param( "planner.temp", "$FindBin::Bin/../tmp" );
-my $output_bin  = $cfg->param( "planner.output_bin", "$FindBin::Bin/../bin" );
-my $output_vec1 = $cfg->param( "planner.output_vec1", "$FindBin::Bin/../vec1" );
-my $output_vec2 = $cfg->param( "planner.output_vec2", "$FindBin::Bin/../vec2" );
-my $class_vec1  = $cfg->param( "planner.class_vec1", $CLASSFILE );
-my $class_vec2  = $cfg->param( "planner.class_vec2", $CA_CLASSFILE );
-my $output_list = $cfg->param( "planner.output_list", "$FindBin::Bin/../pdb_all.list" );
-$cfg->write( $opt->get_config );
+my $library     = $cfg->param("planner.library");
+my $cluster     = $cfg->param("planner.cluster");
+my $source      = $cfg->param("planner.source");
+my $temp        = $cfg->param("planner.temp");
+my $output_bin  = $cfg->param("planner.output_bin");
+my $output_vec1 = $cfg->param("planner.output_vec1");
+my $output_vec2 = $cfg->param("planner.output_vec2");
+my $class_vec1  = $cfg->param("planner.class_vec1");
+my $class_vec2  = $cfg->param("planner.class_vec2");
+my $output_list = $cfg->param("planner.output_list");
 
 #
 Log::Log4perl->init( $opt->get_logger );
@@ -78,10 +89,6 @@ my $pdbfile = PDB::File->new($log);
 $log->info("Read clusters and convert pdb to binary files");
 $pdbfile->cluster_each( $cluster, my $first, my $last, sub {
 		my ( $acq, $chain ) = @_;
-		
-		if(!(defined $acq)) {
-			return;
-		}
 
 		$log->debug( "Start processing clusters to binary ", join( ', ', @$acq ) );
 
