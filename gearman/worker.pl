@@ -15,7 +15,6 @@ use List::Util qw( sum );
 use Getopt::Lucid qw( :all );
 use File::Slurp;
 use Log::Log4perl;
-use Assert qw(dassert);
 use Data::Dump qw( dump pp );
 use Gearman::Killer::Worker;
 use Config::Simple;
