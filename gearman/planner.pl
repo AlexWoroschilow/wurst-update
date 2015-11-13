@@ -40,6 +40,7 @@ my $output_list = $cfg->param("planner.output_list");
 #
 Log::Log4perl->init( $opt->get_logger );
 my $log = Log::Log4perl->get_logger("planner");
+my $sts = Log::Log4perl->get_logger("statistic");
 
 $log->info( "Config: ",        $opt->get_config );
 $log->info( "Logger: ",        $opt->get_logger );
@@ -85,6 +86,8 @@ $pdbfile->cluster_each( $cluster, my $first, my $last, sub {
 				1               # Should calculate all binary files for a cluster
 		] );
 
+
+		$sts->info('cluster_to_bin;started;', , join( ', ', @$acq ));
 		$log->debug( "Prepare gearman task settings ", $options );
 		$tasks->add_task( "cluster_to_bin" => $options, {
 				on_fail => sub {
@@ -92,12 +95,14 @@ $pdbfile->cluster_each( $cluster, my $first, my $last, sub {
 					# This is totally wrong situation
 					# write a report to std error about it
 					# for more details see logs from worker
-					$log->error( "Cluster processing failed  ", join( ', ', @$acq ) );
+					$log->error( "cluster_to_bin done failed ", join( ', ', @$acq ) );
+					$sts->info('cluster_to_bin;failed;', , join( ', ', @$acq ));
 				},
 				on_complete => sub {
 
 					my $response = $json->decode( ${ $_[0] } );
-					$log->debug( "Cluster processing complete  ", join( ', ', @$acq ) );
+					$sts->info('cluster_to_bin;finished;', , join( ', ', @$acq ));
+					$log->debug( "cluster_to_bin done ", join( ', ', @$acq ) );
 					$log->debug( "Worker response received ", ${ $_[0] } );
 
 					# Build a library with proteins
@@ -139,7 +144,6 @@ $pdbfile->list_each( $output_list, sub {
 				$class_vec2      # class file for vector structures, version 2
 		] );
 
-		$log->info("$code;bin_to_vec;failed");
 		$tasks->add_task( "bin_to_vec" => $options, {
 
 				on_fail => sub {
@@ -147,12 +151,11 @@ $pdbfile->list_each( $output_list, sub {
 					# This is totally wrong situation
 					# write a report to std error about it
 					# for more details see logs from worker
-					$log->info("$code;bin_to_vec;failed");
-					$log->error("[$code] bin_to_vec failed");
+					$log->error( "bin_to_vec failed ", $code );
 				},
 				on_complete => sub {
-					$log->info("$code;bin_to_vec;done");
-					$log->debug( "Worker response received ", ${ $_[0] } );
+					$log->debug( "bin_to_vec done ", $code );
+					$log->debug( "Worker response received ",           ${ $_[0] } );
 				},
 		} );
 } );
