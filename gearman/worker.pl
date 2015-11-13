@@ -65,6 +65,7 @@ $worker->register_function( "cluster_to_bin" => sub {
 
 		$log->debug( "Send response ", join( ', ', @$library ) ) if scalar($library);
 
+		$library = [] unless $library;
 		return $json->encode($library);
 } );
 
