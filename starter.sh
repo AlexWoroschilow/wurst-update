@@ -5,6 +5,7 @@
 #$ -S /bin/bash
 set -e
 
+CONFIG_STARTER="$(pwd)/etc/starter.conf";
 echo "Read config: ${CONFIG_STARTER}";
 . "/${CONFIG_STARTER}";
 
