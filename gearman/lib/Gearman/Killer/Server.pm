@@ -23,16 +23,21 @@ sub should_die ($ $) {
 	my $jobs    = shift;
 	my $clients = shift;
 
+	my $timeout1 = $self->{_timeout1};
+	my $timeout2 = $self->{_timeout2};
+
 	$self->{_worked} = 1 if $jobs;
 
 	my $current    = time;
 	my $difference = $current - $self->{_started};
 	if ( !$self->{_worked} ) {
-		return $difference > $self->{_timeout1};
+		return 1 if !$timeout1;
+		return $difference > $timeout1;
 	}
 
 	if ( !$jobs && !$clients ) {
-		return $difference > $self->{_timeout2};
+		return 1 if !$timeout2;
+		return $difference > $timeout2;
 	}
 	$self->{_started} = time;
 	return 0;
