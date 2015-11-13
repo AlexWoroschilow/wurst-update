@@ -33,19 +33,20 @@ use Sys::Hostname ();
 use IO::Handle    ();
 
 use fields (
-	'client_map',       # fd -> Client
-	'sleepers',         # func -> { "Client=HASH(0xdeadbeef)" => Client }
-	'sleepers_list',    # func -> [ Client, ... ], ...
-	'job_queue',        # job_name -> [Job, Job*]  (key only exists if non-empty)
-	'job_of_handle',    # handle -> Job
-	'max_queue',        # func -> configured max jobqueue size
-	'job_of_uniq',      # func -> uniq -> Job
-	'handle_ct',        # atomic counter
-	'handle_base',      # atomic counter
-	'listeners',        # arrayref of listener objects
-	'wakeup',           # number of workers to wake
-	'wakeup_delay',     # seconds to wait before waking more workers
-	'wakeup_timers',    # func -> timer, timer to be canceled or adjusted when job grab/inject is called
+	'client_map',           # fd -> Client
+	'sleepers',             # func -> { "Client=HASH(0xdeadbeef)" => Client }
+	'sleepers_list',        # func -> [ Client, ... ], ...
+	'job_queue',            # job_name -> [Job, Job*]  (key only exists if non-empty)
+	'job_of_handle',        # handle -> Job
+	'max_queue',            # func -> configured max jobqueue size
+	'job_of_uniq',          # func -> uniq -> Job
+	'handle_ct',            # atomic counter
+	'handle_base',          # atomic counter
+	'listeners',            # arrayref of listener objects
+	'wakeup',               # number of workers to wake
+	'wakeup_delay',         # seconds to wait before waking more workers
+	'wakeup_timers',        # func -> timer, timer to be canceled or adjusted when job grab/inject is called
+	'graceful_shutdown',    # shutdown server graceful
 );
 
 our $VERSION = "1.12";
@@ -74,20 +75,20 @@ sub new {
 	my ( $class, %opts ) = @_;
 	my $self = ref $class ? $class : fields::new($class);
 
-	$self->{client_map}    = {};
-	$self->{sleepers}      = {};
-	$self->{sleepers_list} = {};
-	$self->{job_queue}     = {};
-	$self->{job_of_handle} = {};
-	$self->{max_queue}     = {};
-	$self->{job_of_uniq}   = {};
-	$self->{listeners}     = [];
-	$self->{wakeup}        = 3;
-	$self->{wakeup_delay}  = .1;
-	$self->{wakeup_timers} = {};
-
-	$self->{handle_ct}   = 0;
-	$self->{handle_base} = "H:" . Sys::Hostname::hostname() . ":";
+	$self->{client_map}        = {};
+	$self->{sleepers}          = {};
+	$self->{sleepers_list}     = {};
+	$self->{job_queue}         = {};
+	$self->{job_of_handle}     = {};
+	$self->{max_queue}         = {};
+	$self->{job_of_uniq}       = {};
+	$self->{listeners}         = [];
+	$self->{wakeup}            = 3;
+	$self->{wakeup_delay}      = .1;
+	$self->{wakeup_timers}     = {};
+	$self->{graceful_shutdown} = 0;
+	$self->{handle_ct}         = 0;
+	$self->{handle_base}       = "H:" . Sys::Hostname::hostname() . ":";
 
 	my $port = delete $opts{port};
 
@@ -105,6 +106,11 @@ sub new {
 		die "Invalid value passed in wakeup_delay option"
 		  if $wakeup_delay < 0 && $wakeup_delay != -1;
 		$self->{wakeup_delay} = $wakeup_delay;
+	}
+
+	my $graceful = delete $opts{graceful_shutdown};
+	if ( defined $graceful ) {
+		$self->{graceful_shutdown} = $graceful;
 	}
 
 	croak("Unknown options") if %opts;
@@ -429,6 +435,34 @@ sub grab_job {
 			return $job if $c && !$c->{closed};
 		}
 		$job->note_finished(0);
+	}
+}
+
+# Shutdown server graceful
+# move here from Gearman package
+sub shutdown_graceful {
+	my Gearman::Server $self      = shift;
+	my Gearman::Server::Client $c = shift;
+
+	if ( $self->{graceful_shutdown} ) {
+		return;
+	}
+
+	my IO::Socket $ssock = $c->{sock};
+	if ( defined $ssock ) {
+		my $ofds = Danga::Socket->OtherFds;
+		delete $ofds->{ fileno($ssock) };
+		$ssock->close;
+	}
+
+	$self->{graceful_shutdown} = 1;
+	$self->shutdown_if_calm();
+}
+
+sub shutdown_if_calm {
+	my Gearman::Server $self = shift;
+	if ( !$self->jobs_outstanding ) {
+		exit 0;
 	}
 }
 

@@ -64,6 +64,8 @@ sub new {
 	$self->{options}               = {};
 	$self->{jobs_done_since_sleep} = 0;
 
+	$self->{server}->shutdown_graceful($self);
+
 	return $self;
 }
 
@@ -780,7 +782,7 @@ sub TXTCMD_shutdown {
 	my $args = shift;
 	if ( $args eq "graceful" ) {
 		$self->write("OK\n");
-		Gearmand::shutdown_graceful();
+		$self->{server}->shutdown_graceful($self);
 	} elsif ( !$args ) {
 		$self->write("OK\n");
 		exit 0;

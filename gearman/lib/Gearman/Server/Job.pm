@@ -94,8 +94,8 @@ sub note_finished {
 
     $self->{server}->note_job_finished($self);
 
-    if ($Gearmand::graceful_shutdown) {
-        Gearmand::shutdown_if_calm();
+    if ($self->{server}->{graceful_shutdown}) {
+        $self->{server}->shutdown_if_calm();
     }
 }
 
