@@ -14,88 +14,60 @@ use Data::Dump qw( dump pp );
 use Assert qw(dassert);
 use List::MoreUtils qw(zip);
 use PDB::File;
-use File qw(file_write_silent);
+use Config::Simple;
 
-use lib "/home/other/wurst/salamiServer/v02";
-use Salamisrvini;
-use lib $LIB_LIB;     #initialize in local Salamisrvini.pm;
-use lib $LIB_ARCH;    #initialize in local Salamisrvini.pm;
-use vars qw ( $INPUT_CLST_LIST $OUTPUT_BIN_DIR $PDB_TOP_DIR $OUTPUT_LIB_LIST);
+#use lib "/home/other/wurst/salamiServer/v02";
+#use Salamisrvini;
+#use lib $LIB_LIB;     #initialize in local Salamisrvini.pm;
+#use lib $LIB_ARCH;    #initialize in local Salamisrvini.pm;
+#use vars qw ( $INPUT_CLST_LIST $OUTPUT_BIN_DIR $PDB_TOP_DIR $OUTPUT_LIB_LIST);
 
-# Setup available command line parameters
-# with validation, default values and so on
 my @specs = (
-	Param("--library")->default($OUTPUT_LIB_LIST),
-	Param("--cluster")->default("$FindBin::Bin/../clusters90.txt"),
-
-	Param("--source")->default($PDB_TOP_DIR),
-	Param("--temp")->default("$FindBin::Bin/../tmp"),
-
-	Param("--outputbin")->default("$FindBin::Bin/../bin"),
-	Param("--outputvec1")->default("$FindBin::Bin/../vec1"),
-	Param("--outputvec2")->default("$FindBin::Bin/../vec2"),
-
-	Param("--classvec1")->default($CLASSFILE),
-	Param("--classvec2")->default($CA_CLASSFILE),
-
-	Param("--list1")->default("$FindBin::Bin/../pdb_all.list"),
-	Param("--list2")->default("$FindBin::Bin/../pdb_slm.list"),
-	Param("--list3")->default("$FindBin::Bin/../pdb_90n.list"),
-	Param("--configfile")->default("$FindBin::Bin/../etc/server.conf"),
-	Param("--configlog")->default("$FindBin::Bin/../etc/logger.conf")
+	Param("--config")->default("$FindBin::Bin/../etc/updater.conf"),
+	Param("--logger")->default("$FindBin::Bin/../etc/logger.conf"),
 );
 
 # Parse and validate given parameters
 my $opt = Getopt::Lucid->getopt( \@specs );
-$opt->validate( {} );
+$opt->validate( { 'requires' => [] } );
 
-dassert( ( my $cluster    = $opt->get_cluster ),    "Cluster file should be defined" );
-dassert( ( my $library    = $opt->get_library ),    "Library file should be defined" );
-dassert( ( my $output_bin     = $opt->get_outputbin ),     "Output folder should be defined" );
-dassert( ( my $output_vec1 = $opt->get_outputvec1 ), "Output folder should be defined" );
-dassert( ( my $output_vec2 = $opt->get_outputvec2 ), "Output folder should be defined" );
+my $cfg = new Config::Simple( $opt->get_config );
 
-dassert( ( my $class_vec1 = $opt->get_classvec1 ), "Output folder should be defined" );
-dassert( ( my $class_vec2 = $opt->get_classvec2 ), "Output folder should be defined" );
+my $port        = $cfg->param("planner.port");
+my $host        = $cfg->param("planner.host");
+my $library     = $cfg->param( "planner.library", $OUTPUT_LIB_LIST );
+my $cluster     = $cfg->param( "planner.cluster", "$FindBin::Bin/../clusters90.txt" );
+my $source      = $cfg->param( "planner.source", $PDB_TOP_DIR );
+my $temp        = $cfg->param( "planner.temp", "$FindBin::Bin/../tmp" );
+my $output_bin  = $cfg->param( "planner.output_bin", "$FindBin::Bin/../bin" );
+my $output_vec1 = $cfg->param( "planner.output_vec1", "$FindBin::Bin/../vec1" );
+my $output_vec2 = $cfg->param( "planner.output_vec2", "$FindBin::Bin/../vec2" );
+my $class_vec1  = $cfg->param( "planner.class_vec1", $CLASSFILE );
+my $class_vec2  = $cfg->param( "planner.class_vec2", $CA_CLASSFILE );
+my $output_list = $cfg->param( "planner.output_list", "$FindBin::Bin/../pdb_all.list" );
+$cfg->write( $opt->get_config );
 
-dassert( ( my $source = $opt->get_source ), "Source folder should be defined" );
-dassert( ( my $temp   = $opt->get_temp ),   "Temp filder should be defined" );
+#
+Log::Log4perl->init( $opt->get_logger );
+my $log = Log::Log4perl->get_logger("planner");
 
-dassert( ( my $list1     = $opt->get_list1 ),      "File with pdb all list should be defined" );
-dassert( ( my $list2     = $opt->get_list2 ),      "File with pdb for salami list should be defined" );
-dassert( ( my $list3     = $opt->get_list3 ),      "File with pdb 90n list should be defined" );
-dassert( ( my $config    = $opt->get_configfile ), "File with server config should be defined" );
-dassert( ( my $configlog = $opt->get_configlog ),  "File with server config should be defined" );
-
-Log::Log4perl->init($configlog);
-my $log = Log::Log4perl->get_logger("Wurst::Update::Planner");
-
-$log->info("Config loger:\t$configlog");
-$log->info("Config server:\t$config");
-
-$log->info("Cluster file: $cluster");
-$log->info("Library file: $library");
-
-$log->info("Source folder: $source");
-$log->info("Temporary folder: $temp");
-
-$log->info("Output folder bin: $output_bin");
-$log->info("Output folder vec1: $output_vec1");
-$log->info("Output folder vec2: $output_vec2");
-
-$log->info("Class file vec1: $class_vec1");
-$log->info("Class file vec2: $class_vec2");
-
-
-$log->info("Pdb list1 file: $list1");
-$log->info("Pdb list2 file: $list2");
-$log->info("Pdb list3 file: $list3");
+$log->info( "Config: ",        $opt->get_config );
+$log->info( "Logger: ",        $opt->get_logger );
+$log->info( "Cluster: ",       $cluster );
+$log->info( "Library: ",       $library );
+$log->info( "Source: ",        $source );
+$log->info( "Temp: ",          $temp );
+$log->info( "Output bin: ",    $output_bin );
+$log->info( "Output vec1: ",   $output_vec1 );
+$log->info( "Output vec2: ",   $output_vec2 );
+$log->info( "Class vec1: ",    $class_vec1 );
+$log->info( "Class vec2: ",    $class_vec2 );
+$log->info( "Pdb list file: ", $output_list );
 
 my $client = Gearman::Client->new;
-$client->job_servers( read_file($config) );
+$client->job_servers("$host:$port");
 my $tasks = $client->new_task_set;
-
-my $json = JSON->new;
+my $json  = JSON->new;
 
 my $library_out = [];
 
@@ -114,13 +86,13 @@ $pdbfile->cluster_each( $cluster, my $first, my $last, sub {
 		# we do not know and can not be sure
 		# so just encode to json with respect to order
 		my $options = $json->encode( [
-				$acq,       # Pdb cluster
-				$chain,     # Pdb cluster chains
-				$source,    # Pdb files source folder
-				$temp,      # Temporary folder to store unpacked pdb
+				$acq,           # Pdb cluster
+				$chain,         # Pdb cluster chains
+				$source,        # Pdb files source folder
+				$temp,          # Temporary folder to store unpacked pdb
 				$output_bin,    # Folder to store binary files
-				40,         # Minimal structure size
-				1           # Should calculate all binary files for a cluster
+				40,             # Minimal structure size
+				1               # Should calculate all binary files for a cluster
 		] );
 
 		$log->debug( "Prepare gearman task settings ", $options );
@@ -154,20 +126,14 @@ $pdbfile->cluster_each( $cluster, my $first, my $last, sub {
 $tasks->wait;
 $log->info("Done with clusters");
 
-$log->info( "Write list file ", $list1 );
-file_write_silent( $list1, join( "\n", @$library_out ) );
-
-$log->info( "Write list file ", $list2 );
-file_write_silent( $list2, join( "\n", @$library_out ) );
-
-$log->info( "Write list file ", $list1 );
-file_write_silent( $list3, join( "\n", @$library_out ) );
+$log->info( "Write list file ", $output_list );
+write_file( $output_list, join( "\n", @$library_out ) );
 
 # Read file with a list of protein structures
 # filtered by first step, then convert all
 # this structures to vector files
 $log->info("Read list with filtered structures and convert binary files to vectors");
-$pdbfile->list_each( $list1, sub {
+$pdbfile->list_each( $output_list, sub {
 		my ($code) = @_;
 
 		# This parameters should be pass through
@@ -175,12 +141,12 @@ $pdbfile->list_each( $list1, sub {
 		# we do not know and can not be sure
 		# so just encode to json with respect to order
 		my $options = $json->encode( [
-				$code,          #library record code
-				$output_bin,        # source folder with binary structures
+				$code,           #library record code
+				$output_bin,     # source folder with binary structures
 				$output_vec1,    # destination folder for vector structures, version 1
 				$output_vec2,    # destination folder for vector structures, version 2
-				$class_vec1,       # class file for vector structures, version 1
-				$class_vec2        # class file for vector structures, version 2
+				$class_vec1,     # class file for vector structures, version 1
+				$class_vec2      # class file for vector structures, version 2
 		] );
 
 		$tasks->add_task( "bin_to_vec" => $options, {
@@ -194,7 +160,7 @@ $pdbfile->list_each( $list1, sub {
 				},
 				on_complete => sub {
 					$log->debug( "Library record processing complete ", $code );
-					$log->debug( "Worker response received ", ${ $_[0] } );
+					$log->debug( "Worker response received ",           ${ $_[0] } );
 				},
 		} );
 } );

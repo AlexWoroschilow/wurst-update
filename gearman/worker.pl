@@ -10,8 +10,6 @@ use PDB::File;
 use PDB::Cluster;
 
 use Gearman::Worker;
-use Storable qw( freeze thaw retrieve);
-use Storable qw( freeze );
 
 use List::Util qw( sum );
 use Getopt::Lucid qw( :all );
@@ -20,37 +18,37 @@ use Log::Log4perl;
 use Assert qw(dassert);
 use Data::Dump qw( dump pp );
 use Gearman::Killer::Worker;
+use Config::Simple;
 
-# Setup available command line parameters
-# with validation, default values and so on
 my @specs = (
-	Param("--configfile")->default("$FindBin::Bin/../etc/server.conf"),
-	Param("--configlog")->default("$FindBin::Bin/../etc/logger.conf"),
-	Param("--timeout1")->default( ( 5 * 60 ) ),    # Seconds before die before tasks
-	Param("--timeout2")->default(30),              # Seconds before die after tasks
+	Param("--config")->default("$FindBin::Bin/../etc/updater.conf"),
+	Param("--logger")->default("$FindBin::Bin/../etc/logger.conf"),
 );
 
 # Parse and validate given parameters
 my $opt = Getopt::Lucid->getopt( \@specs );
-$opt->validate( {} );
+$opt->validate( { 'requires' => [] } );
 
-dassert( ( my $configserver = $opt->get_configfile ), "File with server config should not be empty" );
-dassert( ( my $configloger  = $opt->get_configlog ),  "File with server config should not be empty" );
-dassert( ( my $timeout1     = $opt->get_timeout1 ),   "Timeout to shutdown without server should be defined" );
-dassert( ( my $timeout2     = $opt->get_timeout2 ),   "Tmieout to shutdown without tasks should be defined" );
+my $cfg = new Config::Simple( $opt->get_config );
 
-Log::Log4perl->init($configloger);
-my $log = Log::Log4perl->get_logger("Wurst::Update::Worker");
+my $port     = $cfg->param("worker.port");
+my $host     = $cfg->param("worker.host");
+my $timeout1 = $cfg->param("worker.timeout_before_jobs");
+my $timeout2 = $cfg->param("worker.timeout_after_jobs");
 
-$log->info("Config server: $configserver");
-$log->info("Config loger: $configloger");
-$log->info("Timeout without server: $timeout1");
-$log->info("Timeout without tasks: $timeout2");
+Log::Log4perl->init( $opt->get_logger );
+my $log = Log::Log4perl->get_logger("worker");
+
+$log->info( "Config: ",                $opt->get_config );
+$log->info( "Logger: ",                $opt->get_logger );
+$log->info( "Host: ",                  $host );
+$log->info( "Port: ",                  $port );
+$log->info( "Timeout without server:", $timeout1 );
+$log->info( "Timeout without tasks:",  $timeout2 );
 
 my $json   = JSON->new;
 my $worker = Gearman::Worker->new;
-$worker->job_servers( read_file($configserver) );
-
+$worker->job_servers("$host:$port");
 my $pdbfile    = PDB::File->new($log);
 my $pdbcluster = PDB::Cluster->new( $log, $pdbfile );
 my $killer     = Gearman::Killer::Worker->new( $log, $timeout1, $timeout2 );
