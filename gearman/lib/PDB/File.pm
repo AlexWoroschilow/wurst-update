@@ -41,7 +41,7 @@ sub write_vec ($) {
 			$self->write_vec_v1( $path, $code, $dest_v1, $class_v1 );
 			$self->write_vec_v2( $path, $code, $dest_v2, $class_v2 );
 		} else {
-			$self->{_logger}->error( "Failed to read  ", $code );
+			$self->{_logger}->error( "$code;Failed to read  ");
 			print(undef);
 		}
 	}
@@ -55,7 +55,7 @@ sub write_vec_v1 ($) {
 	my $gauss_err = 0.4;
 
 	if ( ( -e "$dest/$code.vec" ) ) {
-		$self->{_logger}->debug( "Vector file exists ", $code );
+		$self->{_logger}->debug( "$code;Vector file exists ");
 		return;
 	}
 
@@ -63,17 +63,17 @@ sub write_vec_v1 ($) {
 	if ( not defined $classfcn ) {
 		$classfcn = aa_strct_clssfcn_read( $classfile, $gauss_err );
 		$self->{_cache}->{classfcn} = $classfcn;
-		$self->{_logger}->debug( "Store classfcn in cache ", $code );
+		$self->{_logger}->debug( "$code;Store classfcn in cache ");
 	}
 
 	my $struct = coord_read($path);
 	if ( ( my $pvec = strct_2_prob_vec( $struct, $classfcn, 1 ) ) ) {
 		prob_vec_write( $pvec, "$dest/$code.vec" );
-		$self->{_logger}->debug( "Vector file has been written ", $code );
+		$self->{_logger}->debug( "$code;Vector file has been written ");
 		return;
 	}
 
-	$self->{_logger}->error( "Failed to calculate vector 6 for ", $code );
+	$self->{_logger}->error( "$code;Failed to calculate vector 6 for ");
 }
 
 sub write_vec_v2 ($) {
@@ -84,7 +84,7 @@ sub write_vec_v2 ($) {
 	my $corr_num      = 4;
 
 	if ( ( -e "$dest/$code.vec" ) ) {
-		$self->{_logger}->debug( "Vector file exists ", $code );
+		$self->{_logger}->debug( "$code;Vector file exists ");
 		return;
 	}
 
@@ -92,17 +92,17 @@ sub write_vec_v2 ($) {
 	if ( not defined $classfcn_ca ) {
 		$classfcn_ca = ac_read_calpha( $classfile, $tau_error, $ca_dist_error, $corr_num );
 		$self->{_cache}->{classfcn_ca} = $classfcn_ca;
-		$self->{_logger}->debug( "Store classfcn_ca in cache ", $code );
+		$self->{_logger}->debug( "$code;Store classfcn_ca in cache ");
 	}
 
 	my $struct = coord_read($path);
 	if ( ( my $pvec = calpha_strct_2_prob_vec( $struct, $classfcn_ca, 1 ) ) ) {
 		prob_vec_write( $pvec, "$dest/$code.vec" );
-		$self->{_logger}->debug( "Vector file has been written ", $code );
+		$self->{_logger}->debug( "$code;Vector file has been written ");
 		return;
 	}
 
-	$self->{_logger}->error( "Failed to calculate vector 7 for ", $code );
+	$self->{_logger}->error( "$code;Failed to calculate vector 7 for ");
 }
 
 sub write_bin ($) {
@@ -119,22 +119,22 @@ sub write_bin ($) {
 	my $result = 1;
 
 	if ( !length($code) ) {
-		$self->{_logger}->error("[$code] Protein code can not be empty");
+		$self->{_logger}->error("$code;Protein code can not be empty");
 		$result = 0;
 	}
 
 	if ( !length($src) ) {
-		$self->{_logger}->error("[$code] Source folder can not be empty");
+		$self->{_logger}->error("$code;Source folder can not be empty");
 		$result = 0;
 	}
 
 	if ( !length($tmp) ) {
-		$self->{_logger}->error("[$code] Temporary folder can not be empty");
+		$self->{_logger}->error("$code;Temporary folder can not be empty");
 		$result = 0;
 	}
 
 	if ( !length($dst) ) {
-		$self->{_logger}->error("[$code] Destination folder can not be empty");
+		$self->{_logger}->error("$code;Destination folder can not be empty");
 		$result = 0;
 	}
 
@@ -144,7 +144,7 @@ sub write_bin ($) {
 	# binary file already exists we should 
 	# there are no reasone to rebuild this file
 	if ( $result && ( -f $file ) ) {
-		$self->{_logger}->debug("[$code] Binary file already exists");
+		$self->{_logger}->debug("$code;Binary file already exists");
 		return 1;
 	}
 
@@ -152,39 +152,39 @@ sub write_bin ($) {
 	# there are no sense to do something else
 	# if no pdb file was found, just break up
 	if ( $result && !( $path = $self->get_path( $code, $src, $tmp ) ) ) {
-		$self->{_logger}->warn("[$code] Pdb file not found in: $src");
+		$self->{_logger}->warn("$code;Pdb file not found in: $src");
 		return 0;
 	}
 
 	my $read;
 	if ( $result && !( $read = pdb_read( $path, $code, $chain ) ) ) {
-		$self->{_logger}->warn("[$code] Can not read pdb coordinates");
+		$self->{_logger}->warn("$code;Can not read pdb coordinates");
 		$result = 0;
 	}
 
 	my $c_size;
 	if ( $result && ( $c_size = coord_size($read) ) && ( $c_size < $min ) ) {
-		$self->{_logger}->warn("[$code] To small");
+		$self->{_logger}->warn("$code;To small");
 		$result = 0;
 	}
 
 	if ( $result && !( seq_size( coord_get_seq($read) ) == $c_size ) ) {
-		$self->{_logger}->warn("[$code] Sizes are different");
+		$self->{_logger}->warn("$code;Sizes are different");
 		$result = 0;
 	}
 
 	if ( $result && !$self->check_sequence($read) ) {
-		$self->{_logger}->warn("[$code] Coordinates check failure");
+		$self->{_logger}->warn("$code;Coordinates check failure");
 		$result = 0;
 	}
 
 	if ( $result && !coord_2_bin( $read, $file ) ) {
-		$self->{_logger}->warn("[$code] Can not write bin file: $file");
+		$self->{_logger}->warn("$code;Can not write bin file: $file");
 		$result = 0;
 	}
 
 	if ( !unlink($path) ) {
-		$self->{_logger}->warn("[$code] Deleting $path failed");
+		$self->{_logger}->warn("$code;Deleting $path failed");
 		return $result;
 	}
 
@@ -208,25 +208,25 @@ sub get_path {
 	my $path = "$src1/$two_lett/pdb${acq}.ent.gz";
 
 	if ( !( -f $path ) ) {
-		$self->{_logger}->warn( "[${acq}] Path not found ", $path );
+		$self->{_logger}->warn( "${acq};Path not found ", $path );
 		return (undef);
 	}
 
 	my $tmppath = "$src2/pdb${acq}.ent.gz";
 	if ( !copy( $path, $tmppath ) ) {
-		$self->{_logger}->warn( "[${acq}] Can not copy ", $path, $tmppath );
+		$self->{_logger}->warn( "${acq};Can not copy ", $path, $tmppath );
 		return (undef);
 	}
 
 	my $r = system( ( "/usr/bin/gunzip", "--force", $tmppath ) );
 	if ( !( $r == 0 ) ) {
-		$self->{_logger}->warn( "[${acq}] Gunzip failed on ", $tmppath );
+		$self->{_logger}->warn( "${acq};Gunzip failed on ", $tmppath );
 		return (undef);
 	}
 
 	$tmppath =~ s/\.gz$//;
 	if ( !( -f ($tmppath) ) ) {
-		$self->{_logger}->warn( "[${acq}] Lost uncompressed file ", $tmppath );
+		$self->{_logger}->warn( "${acq};Lost uncompressed file ", $tmppath );
 		return (undef);
 	}
 	return $tmppath;
