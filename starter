@@ -35,7 +35,7 @@ sub main ($ $ $ $ $) {
 exit(
 	main(
 		"$FindBin::Bin/etc/vector.conf", 
-		"$FindBin::Bin/etc/logger.conf",cd ~
+		"$FindBin::Bin/etc/logger.conf",
 		"$FindBin::Bin/bin/server.sh",      
 		"$FindBin::Bin/bin/planner.sh",
 		"$FindBin::Bin/bin/worker.sh"
