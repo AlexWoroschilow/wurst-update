@@ -17,7 +17,7 @@ use FindBin;
 use lib "$FindBin::Bin/src/lib";
 use Config::Simple;
 
-use lib "/home/pool/other/wurst/salamiServer/v02";
+use lib "/home/other/wurst/salamiServer/v02";
 use Salamisrvini;
 use lib $LIB_LIB;     #initialize in local Salamisrvini.pm;
 use lib $LIB_ARCH;    #initialize in local Salamisrvini.pm;
