@@ -25,9 +25,9 @@ sub main ($ $ $ $ $) {
 	my $planner = shift;
 	my $worker  = shift;
 
-	system("qsub -S /bin/bash -wd $FindBin::Bin -q \"8c.q,16c.q,32c.q\" $server $config $logger");
-	system("qsub -S /bin/bash -wd $FindBin::Bin -q \"8c.q,16c.q,32c.q\" $planner $config $logger");
-	system("qsub -S /bin/bash -wd $FindBin::Bin -q \"8c.q,16c.q,32c.q\" $worker $config $logger");
+	system("qsub -S /bin/bash -wd $FindBin::Bin -q \"stud.q\" $server $config $logger");
+	system("qsub -S /bin/bash -wd $FindBin::Bin -q \"stud.q\" $planner $config $logger");
+	system("qsub -S /bin/bash -wd $FindBin::Bin -q \"stud.q\" $worker $config $logger");
 
 	return 0;
 }
@@ -35,7 +35,7 @@ sub main ($ $ $ $ $) {
 exit(
 	main(
 		"$FindBin::Bin/etc/vector.conf", 
-		"$FindBin::Bin/etc/logger.conf",
+		"$FindBin::Bin/etc/logger.conf",cd ~
 		"$FindBin::Bin/bin/server.sh",      
 		"$FindBin::Bin/bin/planner.sh",
 		"$FindBin::Bin/bin/worker.sh"
