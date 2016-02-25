@@ -30,15 +30,15 @@ sub main ($) {
 	my $cfg = new Config::Simple( $file );
 
 	$cfg->param( "planner.library",     $OUTPUT_LIB_LIST );
-	$cfg->param( "planner.cluster",     "$FindBin::Bin/../var/clusters90.txt" );
+	$cfg->param( "planner.cluster",     "$FindBin::Bin/var/clusters90.txt" );
 	$cfg->param( "planner.source",      $PDB_TOP_DIR );
-	$cfg->param( "planner.temp",        "$FindBin::Bin/../tmp" );
-	$cfg->param( "planner.output_bin",  "$FindBin::Bin/../var/bin" );
-	$cfg->param( "planner.output_vec1", "$FindBin::Bin/../var/vec1" );
-	$cfg->param( "planner.output_vec2", "$FindBin::Bin/../var/vec2" );
+	$cfg->param( "planner.temp",        "$FindBin::Bin/tmp" );
+	$cfg->param( "planner.output_bin",  "$FindBin::Bin/var/bin" );
+	$cfg->param( "planner.output_vec1", "$FindBin::Bin/var/vec1" );
+	$cfg->param( "planner.output_vec2", "$FindBin::Bin/var/vec2" );
 	$cfg->param( "planner.class_vec1",  $CLASSFILE );
 	$cfg->param( "planner.class_vec2",  $CA_CLASSFILE );
-	$cfg->param( "planner.output_list", "$FindBin::Bin/../var/pdb_all.list" );
+	$cfg->param( "planner.output_list", "$FindBin::Bin/var/pdb_all.list" );
 	
 	$cfg->write( $file );
 
