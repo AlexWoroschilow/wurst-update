@@ -17,6 +17,21 @@ use FindBin;
 use lib "$FindBin::Bin/src/lib";
 use Config::Simple;
 
+use lib "/home/other/wurst/salamiServer/v02";
+use Salamisrvini;
+use lib $LIB_LIB;     #initialize in local Salamisrvini.pm;
+use lib $LIB_ARCH;    #initialize in local Salamisrvini.pm;
+use vars qw ( $INPUT_CLST_LIST $OUTPUT_BIN_DIR $PDB_TOP_DIR $OUTPUT_LIB_LIST);
+
+sub is_background_process_sge ($) {
+	my $starter = shift;
+	my $name = substr( $starter, rindex( $starter, "/" ) + 1 );
+
+	my $result = `qstat -s r -ext`;
+
+	return ( index( $result, $name ) > -1 );
+}
+
 sub main ($ $ $ $ $) {
 
 	my $config  = shift;
@@ -25,9 +40,36 @@ sub main ($ $ $ $ $) {
 	my $planner = shift;
 	my $worker  = shift;
 
-	system("qsub -S /bin/bash -wd $FindBin::Bin -q \"stud.q\" $server $config $logger");
-	system("qsub -S /bin/bash -wd $FindBin::Bin -q \"stud.q\" $planner $config $logger");
-	system("qsub -S /bin/bash -wd $FindBin::Bin -q \"stud.q\" $worker $config $logger");
+	my $cfg = new Config::Simple($config);
+
+	$cfg->param( "planner.library",     $OUTPUT_LIB_LIST );
+	$cfg->param( "planner.cluster",     "$FindBin::Bin/var/clusters90.txt" );
+	$cfg->param( "planner.source",      $PDB_TOP_DIR );
+	$cfg->param( "planner.temp",        "$FindBin::Bin/tmp" );
+	$cfg->param( "planner.output_bin",  "$FindBin::Bin/var/bin" );
+	$cfg->param( "planner.output_vec1", "$FindBin::Bin/var/vec1" );
+	$cfg->param( "planner.output_vec2", "$FindBin::Bin/var/vec2" );
+	$cfg->param( "planner.class_vec1",  $CLASSFILE );
+	$cfg->param( "planner.class_vec2",  $CA_CLASSFILE );
+	$cfg->param( "planner.output_list", "$FindBin::Bin/var/pdb_all.list" );
+	$cfg->param( "planner.logfile",     "$FindBin::Bin/log/planner.log" );
+	$cfg->param( "worker.logfile",      "$FindBin::Bin/log/worker.log" );
+	$cfg->param( "server.logfile",      "$FindBin::Bin/log/server.log" );
+
+	$cfg->write($config);
+
+	return 0
+	  if ( is_background_process_sge($server)
+		&& is_background_process_sge($planner)
+		&& is_background_process_sge($worker) );
+
+	system("qsub -S /bin/bash -wd $FindBin::Bin $server $config $logger");
+
+	while ( not is_background_process_sge($server) ) {
+		sleep(1);
+	}
+	system("qsub -S /bin/bash -wd $FindBin::Bin $worker $config $logger");
+	system("qsub -S /bin/bash -wd $FindBin::Bin $planner $config $logger");
 
 	return 0;
 }
@@ -36,7 +78,7 @@ exit(
 	main(
 		"$FindBin::Bin/etc/vector.conf", 
 		"$FindBin::Bin/etc/logger.conf",
-		"$FindBin::Bin/bin/server.sh",      
+		"$FindBin::Bin/bin/server.sh",   
 		"$FindBin::Bin/bin/planner.sh",
 		"$FindBin::Bin/bin/worker.sh"
 	)
