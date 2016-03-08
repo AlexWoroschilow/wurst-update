@@ -16,6 +16,7 @@ use warnings;
 use FindBin;
 use lib "$FindBin::Bin/src/lib";
 use Config::Simple;
+use ZBH::SGE;
 
 use lib "/home/other/wurst/salamiServer/v02";
 use Salamisrvini;
@@ -23,14 +24,6 @@ use lib $LIB_LIB;     #initialize in local Salamisrvini.pm;
 use lib $LIB_ARCH;    #initialize in local Salamisrvini.pm;
 use vars qw ( $INPUT_CLST_LIST $OUTPUT_BIN_DIR $PDB_TOP_DIR $OUTPUT_LIB_LIST);
 
-sub is_background_process_sge ($) {
-	my $starter = shift;
-	my $name = substr( $starter, rindex( $starter, "/" ) + 1 );
-
-	my $result = `qstat -s r -ext`;
-
-	return ( index( $result, $name ) > -1 );
-}
 
 sub main ($ $ $ $ $) {
 
@@ -42,7 +35,7 @@ sub main ($ $ $ $ $) {
 
 	my $cfg = new Config::Simple($config);
 
-	$cfg->param( "planner.library",     $OUTPUT_LIB_LIST );
+
 	$cfg->param( "planner.cluster",     "$FindBin::Bin/var/clusters90.txt" );
 	$cfg->param( "planner.source",      $PDB_TOP_DIR );
 	$cfg->param( "planner.temp",        "$FindBin::Bin/tmp" );
@@ -51,21 +44,31 @@ sub main ($ $ $ $ $) {
 	$cfg->param( "planner.output_vec2", "$FindBin::Bin/var/vec2" );
 	$cfg->param( "planner.class_vec1",  $CLASSFILE );
 	$cfg->param( "planner.class_vec2",  $CA_CLASSFILE );
-	$cfg->param( "planner.output_list", "$FindBin::Bin/var/pdb_all.list" );
+	$cfg->param( "planner.output_list", "$FindBin::Bin/var/pdb_all.list" ); #$OUTPUT_LIB_LIST
 	$cfg->param( "planner.logfile",     "$FindBin::Bin/log/planner.log" );
 	$cfg->param( "worker.logfile",      "$FindBin::Bin/log/worker.log" );
 	$cfg->param( "server.logfile",      "$FindBin::Bin/log/server.log" );
 
 	$cfg->write($config);
 
-	return 0
-	  if ( is_background_process_sge($server)
-		&& is_background_process_sge($planner)
-		&& is_background_process_sge($worker) );
+	my $logfile_planner = $cfg->param( "planner.logfile");
+	my $logfile_worker = $cfg->param( "worker.logfile");
+	my $logfile_server = $cfg->param( "server.logfile");
 
+	return 0 if ( 
+		ZBH::SGE::is_background_process_sge($server)
+		&& ZBH::SGE::is_background_process_sge($planner)
+		&& ZBH::SGE::is_background_process_sge($worker)
+	);
+
+	unlink($logfile_server);
+	unlink($logfile_worker);
+	unlink($logfile_planner);
+	
 	system("qsub -S /bin/bash -wd $FindBin::Bin $server $config $logger");
-
-	while ( not is_background_process_sge($server) ) {
+	# server should up for all workers and planners
+	# so we have to wait some time
+	while ( not ZBH::SGE::is_background_process_started_sge($server) ) {
 		sleep(1);
 	}
 	system("qsub -S /bin/bash -wd $FindBin::Bin $worker $config $logger");

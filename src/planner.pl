@@ -48,7 +48,6 @@ sub main ($) {
 	
 	my $port               = $cfg->param("planner.port");
 	my $host               = $cfg->param("planner.host");
-	my $library            = $cfg->param("planner.library");
 	my $cluster            = $cfg->param("planner.cluster");
 	my $source             = $cfg->param("planner.source");
 	my $temp               = $cfg->param("planner.temp");
@@ -68,7 +67,6 @@ sub main ($) {
 	$logger->debug( "Config: ",        $opt->get_config );
 	$logger->debug( "Logger: ",        $opt->get_logger );
 	$logger->debug( "Cluster: ",       $cluster );
-	$logger->debug( "Library: ",       $library );
 	$logger->debug( "Source: ",        $source );
 	$logger->debug( "Temp: ",          $temp );
 	$logger->debug( "Output bin: ",    $output_bin );
@@ -182,6 +180,11 @@ sub main ($) {
 
 	$tasks->wait;
 	$logger->debug( "binary to vectors done");
+	
+	# do not remove this line, this is an indicator
+	# for other scripts that all tasks has been finished
+	$logger->debug( "wurst-vector done");
+
 	return 0;
 }
 
