@@ -24,7 +24,7 @@ sub is_background_process_sge ($) {
 	my $starter = shift;
 	my $name = substr( $starter, rindex( $starter, "/" ) + 1 );
 
-	my $result = `qstat -ext`;
+	my $result = `qstat -r -ext`;
 
 	return ( index( $result, $name ) > -1 );
 }
@@ -34,7 +34,7 @@ sub is_background_process_started_sge ($) {
 	my $starter = shift;
 	my $name = substr( $starter, rindex( $starter, "/" ) + 1 );
 
-	my $result = `qstat -s r -ext`;
+	my $result = `qstat -r -s r -ext`;
 
 	return ( index( $result, $name ) > -1 );
 }
