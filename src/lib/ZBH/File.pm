@@ -200,10 +200,6 @@ sub get_path {
 	my ( $self, $acq, $src1, $src2 ) = @_;
 
 	$acq = lc($acq);
-	if ( ( $acq eq '1cyc' ) || ( $acq eq '1aut' ) ) {
-
-		#		$DB::single = 1;
-	}
 	my $two_lett = substr( $acq, 1, 2 );
 	my $path = "$src1/$two_lett/pdb${acq}.ent.gz";
 

@@ -17,6 +17,7 @@ use FindBin;
 use lib "$FindBin::Bin/src/lib";
 use Config::Simple;
 use ZBH::SGE;
+use ZBH::Local;
 
 sub main ($ $ $ $ $) {
 
@@ -30,8 +31,9 @@ sub main ($ $ $ $ $) {
 	# Check is all processes already started
 	# using Sug Grid Engine
 	return("started") if (
-		ZBH::SGE::is_background_process_sge($server)
-  	);
+		ZBH::Local::is_background_process($server)
+		|| ZBH::SGE::is_background_process_sge($server) );
+		
 	my $logfile   = $cfg->param("planner.logfile");
 	my $keystring = "wurst-vector done";
 	# Check is all tasks successfully finished
