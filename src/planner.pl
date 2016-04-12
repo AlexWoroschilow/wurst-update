@@ -91,13 +91,13 @@ sub main ($) {
 		$attempt = $attempt + 1;
 	}
 
-	my $library = [];
 	my $json  = JSON->new;
 	my $tasks = $client->new_task_set;
 	my $pdbfile = ZBH::File->new($logger);
+
+	my $library_binary = [];
 	# Read cluster from file and convert
 	# each pdb file to binary file
-	$logger->debug( "clusters to binary start");
 	$pdbfile->cluster_each( $cluster, my $first, my $last, sub {
 		my ( $acq, $chain ) = @_;
 
@@ -119,19 +119,17 @@ sub main ($) {
 		]);
 
 		$tasks->add_task( "cluster_to_bin" => $options, {
-			# This is totally wrong situation
-			# write a report to std error about it
-			# for more details see logs from worker
 			on_fail => sub {
+				# This is totally wrong situation
+				# write a report about it
+				# for more details see worker logs
 				$logger->error( "cluster_to_bin failed ", $cluster_string);
 			},
 			on_complete => sub {
 				my $response = $json->decode( ${ $_[0] } );
-				# Build a library with proteins to make 
-				# a dump, with correct structures only
 				if ( scalar(@$response) ) {
 					for ( my $i = 0 ; $i < @$response ; $i++ ) {
-						push( $library, $$response[$i] );
+						push( $library_binary, $$response[$i] );
 					}
 				}
 				$logger->debug( "cluster_to_bin done ", $cluster_string );
@@ -141,49 +139,55 @@ sub main ($) {
 
 	$tasks->wait;
 	$logger->debug( "clusters to binary done");
-	
-	$logger->debug( "Write list file ", $output_list );
-	write_file( $output_list, join( "\n", @$library ) );
 
+	if(!scalar(@$library_binary)) {
+		$logger->fatal( "Binary library is empty");
+		return 0;
+	}
+
+	my $library_vector = [];
 	# Read file with a list of protein structures
 	# filtered by first step, then convert all
 	# this structures to vector files
-	$logger->debug( "binary to vectors start");
-	$pdbfile->list_each( $output_list, sub {
-			my ($code) = @_;
-			# This parameters should be pass through
-			# a network, it may be http or something else
-			# we do not know and can not be sure
-			# so just encode to json with respect to order
-			my $options = $json->encode( [
-				$code,         #library record code
-				$output_bin,   # source folder with binary structures
-				$output_vec1,  # destination folder for vector structures, version 1
-				$output_vec2,  # destination folder for vector structures, version 2
-				$class_vec1,   # class file for vector structures, version 1
-				$class_vec2    # class file for vector structures, version 2
-			]);
-
-			$tasks->add_task( "bin_to_vec" => $options, {
-			# This is totally wrong situation
-			# write a report to std error about it
-			# for more details see logs from worker
-				on_fail => sub {
-					$logger->error( "bin_to_vec failed ", $code );
-				},
-				on_complete => sub {
-					$logger->debug( "bin_to_vec done ", $code );
-				},
-			});
-		}
-	);
+	foreach my $code (@$library_binary){
+		# This parameters should be pass through
+		# a network, it may be http or something else
+		# we do not know and can not be sure
+		# so just encode to json with respect to order
+		my $options = $json->encode( [
+			$code,         #library record code
+			$output_bin,   # source folder with binary structures
+			$output_vec1,  # destination folder for vector structures, version 1
+			$output_vec2,  # destination folder for vector structures, version 2
+			$class_vec1,   # class file for vector structures, version 1
+			$class_vec2    # class file for vector structures, version 2
+		]);
+	
+		$tasks->add_task( "bin_to_vec" => $options, {
+			on_fail => sub {
+				# This is totally wrong situation
+				# write a report about it
+				# for more details see worker logs
+				$logger->error( "bin_to_vec failed ", $code );
+			},
+			on_complete => sub {
+				$logger->debug( "bin_to_vec done ", $code );
+				push( $library_vector, $code );
+			},
+		});
+	}
 
 	$tasks->wait;
-	$logger->debug( "binary to vectors done");
-	
+
+	if(!scalar(@$library_vector)) {
+		$logger->fatal( "Vector library is empty");
+		return 0;
+	}
+
+	write_file( $output_list, join( "\n", @$library_vector ) );
 	# do not remove this line, this is an indicator
 	# for other scripts that all tasks has been finished
-	$logger->debug( "wurst-vector done");
+	$logger->info( "wurst-vector done");
 
 	return 0;
 }
@@ -193,7 +197,6 @@ my @specs = (
 	Param("--logger")->default("$FindBin::Bin/../etc/logger.conf"),
 );
 
-# Parse and validate given parameters
 my $opt = Getopt::Lucid->getopt( \@specs );
 $opt->validate( { 'requires' => [] } );
 
